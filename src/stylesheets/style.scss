@@ -1,0 +1,53 @@
+@import "compass/css3/user-interface";
+
+/* from https://maximilianhoffmann.com/posts/better-font-rendering-on-osx */
+@mixin font-smoothing($value: on) {
+    @if $value == on {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+    @else {
+        -webkit-font-smoothing: subpixel-antialiased;
+        -moz-osx-font-smoothing: auto;
+    }
+}
+
+html, body {
+  @include font-smoothing(on);
+  margin: 0;
+  padding: 0;
+  @include user-select(none);
+}
+
+.GraphGrid--container {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+}
+
+.GraphGrid--rect {
+  width: 100%;
+  text-align: left;
+} 
+
+.GraphGrid--rect--blue {
+  background-color: #60b5cc;
+  color: white;
+}
+
+.GraphGrid--rect--white {
+  background-color: #ddd;
+  color: black;
+}
+
+.fullscreen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.widget {
+  position: absolute;
+}

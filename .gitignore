@@ -1,0 +1,6 @@
+/elm-stuff
+/node_modules
+/build
+/dist
+.sass-cache
+.DS_Store
