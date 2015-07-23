@@ -1,4 +1,5 @@
-@import "compass/css3/user-interface";
+@import "compass/css3";
+@import "compass/css3";
 
 /* from https://maximilianhoffmann.com/posts/better-font-rendering-on-osx */
 @mixin font-smoothing($value: on) {
@@ -14,9 +15,18 @@
 
 html, body {
   @include font-smoothing(on);
+  height: 100%;
+  width: 100%;
   margin: 0;
   padding: 0;
   @include user-select(none);
+}
+
+body > div {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .GraphGrid--container {
@@ -41,13 +51,82 @@ html, body {
 }
 
 .fullscreen {
-  position: absolute;
-  top: 0;
-  left: 0;
   width: 100%;
   height: 100%;
 }
 
 .widget {
   position: absolute;
+}
+
+$controls-width: 260px;
+$tray-open-duration: 0.3s;
+$tray-open-timing-function: ease;
+
+.controls {
+  padding: 0;
+  float: left;
+  width: $controls-width;
+  border-right: 1px solid #ddd;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+  @include transition-property(margin-left);
+  @include transition-duration($tray-open-duration);
+  @include transition-timing-function($tray-open-timing-function);
+}
+
+.controls.tray-closed {
+  margin-left: -$controls-width;
+}
+
+.controls-panel {
+  border-width: 0px;
+  border-bottom: 1px solid #ddd;
+  padding: 15px;
+
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  > div {
+    width: 100%;
+  }
+}
+
+$legend-width: 40px;
+
+.legend {
+  width: $legend-width;
+  float: left;
+  background-color: #deaded;
+  height: 100%;
+}
+
+input[type="file"] {
+  border: none;
+  width: 100%;
+}
+
+.menu-toggle {
+  padding: 10px;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.main-view {
+  width: calc(100% - #{$controls-width + $legend-width});
+  height: 100%;
+  background-color: green;
+  float: left;
+  @include transition-property(width);
+  @include transition-duration($tray-open-duration);
+  @include transition-timing-function($tray-open-timing-function);
+}
+
+.main-view.tray-closed {
+  width: calc(100% - #{$legend-width});
 }

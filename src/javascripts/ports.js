@@ -1,4 +1,4 @@
-var elm_app = Elm.fullscreen(Elm.Main, {analysis: {pitch: 440}, roll: []});
+var elm_app = Elm.fullscreen(Elm.Main, {}) //{analysis: {pitch: 440}, roll: []});
 
 (function(window, elm_app) {
 

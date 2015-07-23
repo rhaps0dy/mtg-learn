@@ -1,19 +1,11 @@
-import GraphGrid
-import GraphPitch
-import GraphPianoRoll
-import GraphPianoRoll exposing (Note)
-import Input
-import FileInput
-
-import Html exposing (Html, div)
-import Signal exposing ((<~), (~), Signal)
 import Signal
-import Time
-import Window
-import Maybe exposing (Maybe(Just,Nothing))
-import Debug
 
-type Model = Model
+import Html exposing (..)
+import Bootstrap.Html exposing (..)
+import Html.Attributes exposing (..)
+import Html.Events exposing (onClick)
+
+{- type Model = Model
     { freqs : List Float
     , nfreqs : Int
     , roll : List Note
@@ -48,8 +40,8 @@ type alias Analysis =
 port analysis : Signal Analysis
 port roll : Signal (List Note)
 
-input : Signal Input
-input = Signal.mergeMany [ (User <~ Input.signal)
+input' : Signal Input
+input' = Signal.mergeMany [ (User <~ Input.signal)
                          , (Frame << (.pitch) <~ analysis)
                          , (Roll <~ roll)
                          ]
@@ -97,7 +89,7 @@ update i m =
     Roll s -> rollUpdate s m
 
 state : Signal Model
-state = Signal.foldp update initState input
+state = Signal.foldp update initState input'
 
 render : (Int, Int) -> Model -> Html
 render (w, h) (Model m) =
@@ -112,7 +104,147 @@ render (w, h) (Model m) =
           , GraphPitch.render (w, h') m.startLinePosRel m.screenCenterA3Offset m.semitoneHeight m.freqPointSeparation m.freqs
           ]
       , FileInput.render h' w (h-h')
+      ] -}
+
+
+labeledCheckbox : String -> String -> Html
+labeledCheckbox id' l =
+  div [ class "checkbox" ]
+   [ label [ for id' ]
+      [ input [ id id', type' "checkbox" ] []
+      , text l
       ]
+   ]
+
+type Action
+  = NoOp
+  | ToggleTray
+
+type alias Model =
+  { trayClosed : Bool }
+
+initModel : Model
+initModel =
+  { trayClosed = False }
+
+update : Action -> Model -> Model
+update a m =
+  case a of
+    ToggleTray -> { m | trayClosed <- not m.trayClosed }
+    _ -> m
+
+view : Signal.Address Action -> Model -> Html
+view address model =
+  div [ class "fullscreen" ]
+   [ div
+      [ classList
+         [ ("controls", True)
+         , ("tray-closed", model.trayClosed) ] ]
+      [ div [ class "controls-panel clearfix" ]
+         [ div []
+            [ h4 [ id "song-select-label" ]
+               [ text "Select song to practice" ]
+            , formGroup_
+               [ select
+                  [ class "form-control"
+                  , attribute "aria-describedby" "song-select-label"
+                  ]
+                  [ option [] [ text "Blue bossa" ]
+                  , option [] [ text "Lightly row" ]
+                  , option [] [ text "Red bossa" ]
+                  ]
+               ]
+            , p [] [ text "or" ]
+            , h4 [] [ text "Use your own" ]
+            , formGroup_
+               [ label [ for "audio-upload" ] [ text "Audio file" ]
+               , input
+                  [ id "audio-upload"
+                  , type' "file"
+                  , accept "audio/*"
+                  ] []
+               ]
+            , formGroup_
+               [ label [ for "sheet-upload" ] [ text "Sheet music (.xml)" ]
+               , input
+                  [ id "sheet-upload"
+                  , type' "file"
+                  , accept "text/xml"
+                  ] []
+               ]
+            ]
+         ]
+      , div [ class "controls-panel" ]
+         [ div [ class "clearfix" ]
+            [ formGroup_
+               [ div [ class "input-group" ]
+                  [ span
+                     [ class "input-group-addon"
+                     , id "bpm-label" ]
+                     [ text "BPM" ]
+                  , input
+                     [ class "form-control"
+                     , id "bpm-value"
+                     , type' "number"
+                     , value "0"
+                     , attribute "aria-describedby" "bpm-label"
+                     ] []
+                  ]
+               ]
+            , labeledCheckbox "play-metronome" "Metronome"
+            , div [ class "form-group clearfix" ]
+               [ label [ class "sr-only", for "jump-beginning" ] [ text "Jump to the beginning" ] 
+               , label [ class "sr-only", for "play" ] [ text "Play" ] 
+               , label [ class "sr-only", for "jump-end" ] [ text "Jump to the end" ] 
+               , div [ class "btn-group pull-left" ]
+                  [ span
+                     [ class "btn btn-default glyphicon glyphicon-fast-backward"
+                     , id "jump-beginning"
+                     ] []
+                  , span
+                     [ class "btn btn-default glyphicon glyphicon-play"
+                     , id "play"
+                     ] []
+                  , span
+                     [ class "btn btn-default glyphicon glyphicon-fast-forward"
+                     , id "jump-end"
+                     ] []
+                  ]
+               , input
+                  [ class "btn btn-default pull-right"
+                  , type' "button"
+                  , value "Get score"
+                  ] []
+               ]
+            ]
+         ]
+      , div [ class "controls-panel clearfix" ]
+         [ div [ class "clearfix" ]
+            [ label [] [ text "View" ]
+            , labeledCheckbox "view-pitch" "Pitch"
+            , labeledCheckbox "view-energy" "Energy"
+            ]
+         ]
+      ]
+   , div [ class "legend" ]
+      [ span
+         [ class "glyphicon glyphicon-menu-hamburger menu-toggle"
+         , onClick address ToggleTray
+         ] []
+      ]
+   , div
+      [ classList
+         [ ("main-view", True)
+         , ("tray-closed", model.trayClosed) ]
+      ] [ text "&nbsp;" ]
+   ]
+
 
 main : Signal Html
-main = render <~ Window.dimensions ~ state
+main = Signal.map (view actions.address) model
+
+model : Signal Model
+model = Signal.foldp update initModel actions.signal
+
+actions : Signal.Mailbox Action
+actions = Signal.mailbox NoOp
