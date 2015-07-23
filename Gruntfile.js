@@ -2,6 +2,9 @@ module.exports = function(grunt) {
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
     watch: {
+      options: {
+        livereload: true
+      },
       elm: {
         files: ['src/elm/**'],
         tasks: ['elm', 'concat:dev', 'appcache:dev']
@@ -33,6 +36,7 @@ module.exports = function(grunt) {
         options: {
           port: 8000,
           base: 'dist',
+          livereload: true
         }
       }
     },
