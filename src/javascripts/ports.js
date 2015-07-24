@@ -1,6 +1,6 @@
-var elm_app = Elm.fullscreen(Elm.Main, {}) //{analysis: {pitch: 440}, roll: []});
+var elm_app = Elm.fullscreen(Elm.Main, {jsFullscreen: false}); //{analysis: {pitch: 440}, roll: []});
 
-(function(window, elm_app) {
+/* (function(window, elm_app) {
 
     var parseXml;
     if (typeof window.DOMParser !== "undefined") {
@@ -126,4 +126,41 @@ var elm_app = Elm.fullscreen(Elm.Main, {}) //{analysis: {pitch: 440}, roll: []})
         alert("You need to accept sharing the microphone to use this application.");
     });
 
-})(window, navigator, Elm, Module, elm_app);
+})(window, navigator, Elm, Module, elm_app); */
+
+(function(window, document, elm_app) {
+    window.goFullscreen = function() {
+        var i = document.body;
+        if (i.requestFullscreen) {
+            i.requestFullscreen();
+        } else if (i.webkitRequestFullscreen) {
+            i.webkitRequestFullscreen();
+        } else if (i.mozRequestFullScreen) {
+            i.mozRequestFullScreen();
+        } else if (i.msRequestFullscreen) {
+            i.msRequestFullscreen();
+        }
+    };
+    function fsHandler() {
+        if (document.fullscreenElement ||
+            document.webkitFullscreenElement ||
+            document.mozFullScreenElement ||
+            document.msFullscreenElement) {
+            elm_app.ports.jsFullscreen.send(true);
+        } else {
+            elm_app.ports.jsFullscreen.send(false);
+        }
+    }
+
+    if('onfullscreenchange' in document) {
+        document.addEventListener('fullscreenchange', fsHandler);
+    } else if('onwebkitfullscreenchange' in document) {
+        document.addEventListener('webkitfullscreenchange', fsHandler);
+    } else if('onmozfullscreenchange' in document) {
+        document.addEventListener('mozfullscreenchange', fsHandler);
+    } else if('onMSFullscreenChange' in document) {
+        document.addEventListener('MSFullscreenChange', fsHandler);
+    } else {
+        console.warn("No fullscreen support!");
+    }
+})(window, document, elm_app);

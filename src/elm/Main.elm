@@ -114,12 +114,14 @@ render (w, h) (Model m) =
 type Action
   = NoOp
   | ToggleTray
+  | Fullscreen Bool
   | SongSelecter SongSelecter.Action
   | PlayControls PlayControls.Action
   | ViewSelecter ViewSelecter.Action
 
 type alias Model =
   { trayClosed : Bool
+  , fullscreen : Bool
   , songSelecter : SongSelecter.Model
   , playControls : PlayControls.Model
   , viewSelecter : ViewSelecter.Model
@@ -128,6 +130,7 @@ type alias Model =
 init : Model
 init =
   { trayClosed = False
+  , fullscreen = False
   , songSelecter = SongSelecter.init
   , playControls = PlayControls.init
   , viewSelecter = ViewSelecter.init
@@ -137,6 +140,7 @@ update : Action -> Model -> Model
 update a m =
   case a of
     ToggleTray -> { m | trayClosed <- not m.trayClosed }
+    Fullscreen b -> { m | fullscreen <- b }
     SongSelecter s -> { m | songSelecter
                           <- SongSelecter.update s m.songSelecter }
     PlayControls c -> { m | playControls
@@ -160,11 +164,18 @@ view address model =
       , ViewSelecter.view (Signal.forwardTo address ViewSelecter) model.viewSelecter
       ]
    , div [ class "legend" ]
-      [ span
-         [ class "glyphicon glyphicon-menu-hamburger menu-toggle"
+      ((if model.fullscreen then [] else
+        [span
+         [ class "glyphicon glyphicon-fullscreen legend-icon"
+         -- Function defined in ports.js, fullscreen has to come from user-generated
+         -- event.
+         , attribute "onclick" "goFullscreen();"
+         ] []])
+      ++ [ span
+         [ class "glyphicon glyphicon-menu-hamburger legend-icon"
          , onClick address ToggleTray
          ] []
-      ]
+      ])
    , div
       [ classList
          [ ("main-view", True)
@@ -177,7 +188,12 @@ main : Signal Html
 main = Signal.map (view actions.address) model
 
 model : Signal Model
-model = Signal.foldp update init actions.signal
+model = Signal.foldp update init (Signal.merge actions.signal jsInputs)
 
 actions : Signal.Mailbox Action
 actions = Signal.mailbox NoOp
+
+jsInputs : Signal Action
+jsInputs = Signal.map Fullscreen jsFullscreen
+
+port jsFullscreen : Signal Bool
