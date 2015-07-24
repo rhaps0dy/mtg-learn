@@ -176,11 +176,11 @@ view address model =
          , onClick address ToggleTray
          ] []
       ])
-   , div
+   , canvas
       [ classList
          [ ("main-view", True)
          , ("tray-closed", model.trayClosed) ]
-      ] [ text "&nbsp;" ]
+      ] [ ]
    ]
 
 
