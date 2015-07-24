@@ -4,12 +4,15 @@ import Html exposing (..)
 import Bootstrap.Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
+import Window
+import Graphics.Collage
+
 
 import Components.Misc exposing (..)
 import Components.SongSelecter as SongSelecter
 import Components.PlayControls as PlayControls
 import Components.ViewSelecter as ViewSelecter
-
+import Components.LegendLeft as LegendLeft
 {- type Model = Model
     { freqs : List Float
     , nfreqs : Int
@@ -118,6 +121,7 @@ type Action
   | SongSelecter SongSelecter.Action
   | PlayControls PlayControls.Action
   | ViewSelecter ViewSelecter.Action
+  | LegendLeft LegendLeft.Action
 
 type alias Model =
   { trayClosed : Bool
@@ -125,6 +129,7 @@ type alias Model =
   , songSelecter : SongSelecter.Model
   , playControls : PlayControls.Model
   , viewSelecter : ViewSelecter.Model
+  , legendLeft : LegendLeft.Model
   }
 
 init : Model
@@ -134,6 +139,7 @@ init =
   , songSelecter = SongSelecter.init
   , playControls = PlayControls.init
   , viewSelecter = ViewSelecter.init
+  , legendLeft = LegendLeft.init
   }
 
 update : Action -> Model -> Model
@@ -147,45 +153,50 @@ update a m =
                           <- PlayControls.update c m.playControls }
     ViewSelecter s -> { m | viewSelecter
                           <- ViewSelecter.update s m.viewSelecter }
+    LegendLeft s -> { m | legendLeft
+                          <- LegendLeft.update s m.legendLeft }
     _ -> m
 
 
-view : Signal.Address Action -> Model -> Html
-view address model =
-  div [ class "fullscreen" ]
-   [ div
-      [ classList
-         [ ("controls", True)
-         , ("tray-closed", model.trayClosed)
-         ]
-      ]
-      [ SongSelecter.view (Signal.forwardTo address SongSelecter) model.songSelecter
-      , PlayControls.view (Signal.forwardTo address PlayControls) model.playControls
-      , ViewSelecter.view (Signal.forwardTo address ViewSelecter) model.viewSelecter
-      ]
-   , div [ class "legend" ]
-      ((if model.fullscreen then [] else
-        [span
-         [ class "glyphicon glyphicon-fullscreen legend-icon"
-         -- Function defined in ports.js, fullscreen has to come from user-generated
-         -- event.
-         , attribute "onclick" "goFullscreen();"
-         ] []])
-      ++ [ span
-         [ class "glyphicon glyphicon-menu-hamburger legend-icon"
-         , onClick address ToggleTray
-         ] []
-      ])
-   , canvas
-      [ classList
-         [ ("main-view", True)
-         , ("tray-closed", model.trayClosed) ]
-      ] [ ]
-   ]
+view : Signal.Address Action -> Model -> (Int, Int) -> Html
+view address model (w, h) =
+  let
+    -- Number 40 is from $legend-width in style.scss
+    legendLeft = LegendLeft.view (Signal.forwardTo address LegendLeft)
+                   model.legendLeft (40, h)
+    menuButton =
+      span
+       [ class "glyphicon glyphicon-menu-hamburger legend-icon"
+       , onClick address ToggleTray
+       ] []
+  in
+    div [ class "fullscreen" ]
+     [ div
+        [ classList
+           [ ("controls", True)
+           , ("tray-closed", model.trayClosed)
+           ]
+        ]
+        [ SongSelecter.view (Signal.forwardTo address SongSelecter) model.songSelecter
+        , PlayControls.view (Signal.forwardTo address PlayControls) model.playControls
+        , ViewSelecter.view (Signal.forwardTo address ViewSelecter) model.viewSelecter
+        ]
+     , div [ class "legend" ]
+        (legendLeft::menuButton::(if model.fullscreen then [] else
+          [span
+           [ class "glyphicon glyphicon-fullscreen legend-icon"
+           -- Function defined in ports.js, fullscreen has to come from user-generated
+           -- event.
+           , attribute "onclick" "goFullscreen();"
+           ] []]))
+     , LegendLeft.view dummy.address model.legendLeft (w, h) 
+     ]
 
+dummy : Signal.Mailbox LegendLeft.Action
+dummy = Signal.mailbox LegendLeft.NoOp
 
 main : Signal Html
-main = Signal.map (view actions.address) model
+main = Signal.map2 (view actions.address) model Window.dimensions
 
 model : Signal Model
 model = Signal.foldp update init (Signal.merge actions.signal jsInputs)
