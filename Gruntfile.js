@@ -161,12 +161,12 @@ module.exports = function(grunt) {
   ].forEach(grunt.loadNpmTasks);
 
   grunt.registerTask('build:dev', [
-    'clean', 'elm', 'concat:dev', 'compass:dev', 'htmlmin:dev', 'copy:images',
-    'copy:fonts']);
+    'clean', 'elm', 'concat:dev', 'compass:dev', 'htmlmin:dev', 'copy']);
   grunt.registerTask('build:prod', [
     'clean', 'elm', 'concat:prod', 'uglify:prod', 'compass:prod',
-    'htmlmin:prod', 'copy:images', 'copy:fonts', 'appcache:prod']);
+    'htmlmin:prod', 'copy', 'appcache:prod']);
   grunt.registerTask('build', ['build:dev']);
+  grunt.registerTask('prod', ['build:prod']);
   grunt.registerTask('run', ['connect:dev', 'watch']);
   grunt.registerTask('default', ['build', 'run']);
 };
