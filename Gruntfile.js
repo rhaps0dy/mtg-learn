@@ -7,27 +7,31 @@ module.exports = function(grunt) {
       },
       elm: {
         files: ['src/elm/**'],
-        tasks: ['elm', 'concat:dev', 'appcache:dev']
+        tasks: ['elm', 'concat:dev']
       },
       stylesheets: {
         files: ['config.rb', 'src/stylesheets/**'],
-        tasks: ['compass:dev', 'appcache:dev']
+        tasks: ['compass:dev']
       },
       javascripts: {
         files: ['src/javascripts/**'],
-        tasks: ['concat:dev', 'appcache:dev']
+        tasks: ['concat:dev']
       },
       html: {
         files: ['src/index.html'],
-        tasks: ['htmlmin', 'appcache:dev']
+        tasks: ['htmlmin']
       },
       images: {
         files: ['src/images/**'],
-        tasks: ['copy:images', 'appcache:dev']
+        tasks: ['copy:images']
       },
       fonts: {
         files: ['src/fonts/**'],
-        tasks: ['copy:fonts', 'appcache:dev']
+        tasks: ['copy:fonts']
+      },
+      data: {
+        files: ['src/data/**'],
+        tasks: ['copy:data']
       },
     },
 
@@ -64,6 +68,12 @@ module.exports = function(grunt) {
         expand: true,
         cwd: 'src',
         src: 'fonts/**',
+        dest: 'dist/'
+      },
+      data: {
+        expand: true,
+        cwd: 'src',
+        src: 'data/**',
         dest: 'dist/'
       },
     },
@@ -119,7 +129,7 @@ module.exports = function(grunt) {
       options: {
         basePath: 'dist'
       },
-      dev: {
+      prod: {
         dest: 'dist/<%= pkg.name %>.appcache',
         cache: {
           patterns: ['dist/**/*'],
@@ -129,10 +139,9 @@ module.exports = function(grunt) {
           ],
         },
         fallback: [
-          '/ /cache/index.html',
+          '/ /index.html',
         ]
-      },
-      prod: '<%= appcache.dev %>'
+      }
     },
     clean: ['dist', 'build']
   });
@@ -153,7 +162,7 @@ module.exports = function(grunt) {
 
   grunt.registerTask('build:dev', [
     'clean', 'elm', 'concat:dev', 'compass:dev', 'htmlmin:dev', 'copy:images',
-    'copy:fonts', 'appcache:dev']);
+    'copy:fonts']);
   grunt.registerTask('build:prod', [
     'clean', 'elm', 'concat:prod', 'uglify:prod', 'compass:prod',
     'htmlmin:prod', 'copy:images', 'copy:fonts', 'appcache:prod']);

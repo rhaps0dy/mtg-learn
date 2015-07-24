@@ -1,7 +1,7 @@
 @import "compass/css3";
 @import "compass/css3";
 
-/* from https://maximilianhoffmann.com/posts/better-font-rendering-on-osx */
+// from https://maximilianhoffmann.com/posts/better-font-rendering-on-osx
 @mixin font-smoothing($value: on) {
     @if $value == on {
         -webkit-font-smoothing: antialiased;
@@ -82,7 +82,7 @@ $tray-open-timing-function: ease;
   margin-left: -$controls-width;
 }
 
-.controls-panel {
+.control-panel {
   border-width: 0px;
   border-bottom: 1px solid #ddd;
   padding: 15px;
@@ -91,6 +91,10 @@ $tray-open-timing-function: ease;
   display: flex;
   align-items: center;
   justify-content: center;
+
+  // Deal with bug 1 of flexbugs
+  // flex divs shrink smaller than their contents in webkit
+  flex-shrink: 0;
 
   > div {
     width: 100%;
@@ -129,4 +133,9 @@ input[type="file"] {
 
 .main-view.tray-closed {
   width: calc(100% - #{$legend-width});
+}
+
+.text-centerer {
+  text-align: center;
+  width: 100%;
 }

@@ -5,6 +5,11 @@ import Bootstrap.Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 
+import Components.Misc exposing (..)
+import Components.SongSelecter as SongSelecter
+import Components.PlayControls as PlayControls
+import Components.ViewSelecter as ViewSelecter
+
 {- type Model = Model
     { freqs : List Float
     , nfreqs : Int
@@ -106,32 +111,40 @@ render (w, h) (Model m) =
       , FileInput.render h' w (h-h')
       ] -}
 
-
-labeledCheckbox : String -> String -> Html
-labeledCheckbox id' l =
-  div [ class "checkbox" ]
-   [ label [ for id' ]
-      [ input [ id id', type' "checkbox" ] []
-      , text l
-      ]
-   ]
-
 type Action
   = NoOp
   | ToggleTray
+  | SongSelecter SongSelecter.Action
+  | PlayControls PlayControls.Action
+  | ViewSelecter ViewSelecter.Action
 
 type alias Model =
-  { trayClosed : Bool }
+  { trayClosed : Bool
+  , songSelecter : SongSelecter.Model
+  , playControls : PlayControls.Model
+  , viewSelecter : ViewSelecter.Model
+  }
 
-initModel : Model
-initModel =
-  { trayClosed = False }
+init : Model
+init =
+  { trayClosed = False
+  , songSelecter = SongSelecter.init
+  , playControls = PlayControls.init
+  , viewSelecter = ViewSelecter.init
+  }
 
 update : Action -> Model -> Model
 update a m =
   case a of
     ToggleTray -> { m | trayClosed <- not m.trayClosed }
+    SongSelecter s -> { m | songSelecter
+                          <- SongSelecter.update s m.songSelecter }
+    PlayControls c -> { m | playControls
+                          <- PlayControls.update c m.playControls }
+    ViewSelecter s -> { m | viewSelecter
+                          <- ViewSelecter.update s m.viewSelecter }
     _ -> m
+
 
 view : Signal.Address Action -> Model -> Html
 view address model =
@@ -139,92 +152,12 @@ view address model =
    [ div
       [ classList
          [ ("controls", True)
-         , ("tray-closed", model.trayClosed) ] ]
-      [ div [ class "controls-panel clearfix" ]
-         [ div []
-            [ h4 [ id "song-select-label" ]
-               [ text "Select song to practice" ]
-            , formGroup_
-               [ select
-                  [ class "form-control"
-                  , attribute "aria-describedby" "song-select-label"
-                  ]
-                  [ option [] [ text "Blue bossa" ]
-                  , option [] [ text "Lightly row" ]
-                  , option [] [ text "Red bossa" ]
-                  ]
-               ]
-            , p [] [ text "or" ]
-            , h4 [] [ text "Use your own" ]
-            , formGroup_
-               [ label [ for "audio-upload" ] [ text "Audio file" ]
-               , input
-                  [ id "audio-upload"
-                  , type' "file"
-                  , accept "audio/*"
-                  ] []
-               ]
-            , formGroup_
-               [ label [ for "sheet-upload" ] [ text "Sheet music (.xml)" ]
-               , input
-                  [ id "sheet-upload"
-                  , type' "file"
-                  , accept "text/xml"
-                  ] []
-               ]
-            ]
+         , ("tray-closed", model.trayClosed)
          ]
-      , div [ class "controls-panel" ]
-         [ div [ class "clearfix" ]
-            [ formGroup_
-               [ div [ class "input-group" ]
-                  [ span
-                     [ class "input-group-addon"
-                     , id "bpm-label" ]
-                     [ text "BPM" ]
-                  , input
-                     [ class "form-control"
-                     , id "bpm-value"
-                     , type' "number"
-                     , value "0"
-                     , attribute "aria-describedby" "bpm-label"
-                     ] []
-                  ]
-               ]
-            , labeledCheckbox "play-metronome" "Metronome"
-            , div [ class "form-group clearfix" ]
-               [ label [ class "sr-only", for "jump-beginning" ] [ text "Jump to the beginning" ] 
-               , label [ class "sr-only", for "play" ] [ text "Play" ] 
-               , label [ class "sr-only", for "jump-end" ] [ text "Jump to the end" ] 
-               , div [ class "btn-group pull-left" ]
-                  [ span
-                     [ class "btn btn-default glyphicon glyphicon-fast-backward"
-                     , id "jump-beginning"
-                     ] []
-                  , span
-                     [ class "btn btn-default glyphicon glyphicon-play"
-                     , id "play"
-                     ] []
-                  , span
-                     [ class "btn btn-default glyphicon glyphicon-fast-forward"
-                     , id "jump-end"
-                     ] []
-                  ]
-               , input
-                  [ class "btn btn-default pull-right"
-                  , type' "button"
-                  , value "Get score"
-                  ] []
-               ]
-            ]
-         ]
-      , div [ class "controls-panel clearfix" ]
-         [ div [ class "clearfix" ]
-            [ label [] [ text "View" ]
-            , labeledCheckbox "view-pitch" "Pitch"
-            , labeledCheckbox "view-energy" "Energy"
-            ]
-         ]
+      ]
+      [ SongSelecter.view (Signal.forwardTo address SongSelecter) model.songSelecter
+      , PlayControls.view (Signal.forwardTo address PlayControls) model.playControls
+      , ViewSelecter.view (Signal.forwardTo address ViewSelecter) model.viewSelecter
       ]
    , div [ class "legend" ]
       [ span
@@ -244,7 +177,7 @@ main : Signal Html
 main = Signal.map (view actions.address) model
 
 model : Signal Model
-model = Signal.foldp update initModel actions.signal
+model = Signal.foldp update init actions.signal
 
 actions : Signal.Mailbox Action
 actions = Signal.mailbox NoOp
