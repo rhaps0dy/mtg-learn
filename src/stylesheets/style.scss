@@ -115,6 +115,9 @@ $legend-width: 40px;
   padding: 10px;
   font-size: 20px;
   cursor: pointer;
+  background-color: #ddd;
+  position: static;
+  opacity: 0.7;
 }
 
 input[type="file"] {
