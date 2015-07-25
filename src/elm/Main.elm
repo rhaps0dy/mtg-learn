@@ -139,7 +139,7 @@ init =
   , songSelecter = SongSelecter.init
   , playControls = PlayControls.init
   , viewSelecter = ViewSelecter.init
-  , legendLeft = LegendLeft.init
+  , legendLeft = LegendLeft.init ViewSelecter.init
   }
 
 update : Action -> Model -> Model
@@ -163,7 +163,7 @@ view address model (w, h) =
   let
     -- Number 40 is from $legend-width in style.scss
     legendLeft = LegendLeft.view (Signal.forwardTo address LegendLeft)
-                   model.legendLeft (40, h)
+                   model.legendLeft model.viewSelecter (40, h)
     menuButton =
       span
        [ class "glyphicon glyphicon-menu-hamburger legend-icon"
@@ -189,7 +189,7 @@ view address model (w, h) =
            -- event.
            , attribute "onclick" "goFullscreen();"
            ] []]))
-     , LegendLeft.view dummy.address model.legendLeft (w, h) 
+     , LegendLeft.view dummy.address model.legendLeft model.viewSelecter (w, h)
      ]
 
 dummy : Signal.Mailbox LegendLeft.Action
