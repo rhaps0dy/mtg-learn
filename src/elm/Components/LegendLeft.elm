@@ -4,7 +4,9 @@ module Components.LegendLeft (Model, init, Action(..), update, view) where
 depends on the ViewSelecter component
 -}
 
-import Html exposing (fromElement, Html)
+import Html
+import Html.Attributes as Html
+import Html.Events as Html
 import Graphics.Collage exposing (..)
 import Color exposing (..)
 import Array exposing (Array)
@@ -31,7 +33,7 @@ update action model =
   case action of
     _ -> model
 
-view : Signal.Address Action -> Model -> VSel.Model -> (Int, Int) -> Html
+view : Signal.Address Action -> Model -> VSel.Model -> (Int, Int) -> Html.Html
 view address model vSelModel (width, height) =
   let
     separatorH = 1
@@ -54,5 +56,11 @@ view address model vSelModel (width, height) =
     drawComp c i = (c componentH |> moveY (resetY - toFloat i * (1 + componentH)))
                  ::(if i /= nComp-1 then [rect width' 1 |> filled grey] else [])
   in
-    fromElement <| collage width height <|
-      List.concat <| List.map2 drawComp components [0..nComp-1]
+    Html.div
+     [ Html.style [ ("width", toString width ++ "px")
+                  , ("height", toString height ++ "px") ]
+     , Html.class "legend-canvas"
+     ]
+     [ Html.fromElement <| collage width height <|
+         List.concat <| List.map2 drawComp components [0..nComp-1]
+     ]

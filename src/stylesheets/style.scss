@@ -32,14 +32,6 @@ body > div {
 .fullscreen {
   width: 100%;
   height: 100%;
-
-  // Big canvas in the background, style the Element
-  > div:last-child {
-    position: fixed !important;
-    overflow: visible !important;
-    z-index: -1;
-    visibility: hidden;
-  }
 }
 
 .widget {
@@ -93,12 +85,10 @@ $legend-width: 40px;
 .legend {
   width: $legend-width;
   float: left;
+}
 
-  // keep the buttons at the top by styling the Element
-  div {
-    height: 0 !important;
-    overflow: visible !important;
-  }
+.legend-canvas {
+  position: absolute;
 }
 
 $legend-font-size: 20px;

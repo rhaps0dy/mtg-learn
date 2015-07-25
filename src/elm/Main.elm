@@ -189,7 +189,6 @@ view address model (w, h) =
            -- event.
            , attribute "onclick" "goFullscreen();"
            ] []]))
-     , LegendLeft.view dummy.address model.legendLeft model.viewSelecter (w, h)
      ]
 
 dummy : Signal.Mailbox LegendLeft.Action
