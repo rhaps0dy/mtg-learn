@@ -12,7 +12,7 @@ import Components.Misc exposing (..)
 import Components.SongSelecter as SongSelecter
 import Components.PlayControls as PlayControls
 import Components.ViewSelecter as ViewSelecter
-import Components.LegendLeft as LegendLeft
+import Components.YLabels as YLabels
 {- type Model = Model
     { freqs : List Float
     , nfreqs : Int
@@ -121,7 +121,7 @@ type Action
   | SongSelecter SongSelecter.Action
   | PlayControls PlayControls.Action
   | ViewSelecter ViewSelecter.Action
-  | LegendLeft LegendLeft.Action
+  | YLabels YLabels.Action
 
 type alias Model =
   { trayClosed : Bool
@@ -129,7 +129,7 @@ type alias Model =
   , songSelecter : SongSelecter.Model
   , playControls : PlayControls.Model
   , viewSelecter : ViewSelecter.Model
-  , legendLeft : LegendLeft.Model
+  , yLabelLeft : YLabels.Model
   }
 
 init : Model
@@ -139,7 +139,7 @@ init =
   , songSelecter = SongSelecter.init
   , playControls = PlayControls.init
   , viewSelecter = ViewSelecter.init
-  , legendLeft = LegendLeft.init
+  , yLabelLeft = YLabels.init
   }
 
 update : Action -> Model -> Model
@@ -153,20 +153,20 @@ update a m =
                           <- PlayControls.update c m.playControls }
     ViewSelecter s -> { m | viewSelecter
                           <- ViewSelecter.update s m.viewSelecter }
-    LegendLeft s -> { m | legendLeft
-                          <- LegendLeft.update s m.legendLeft }
+    YLabels s -> { m | yLabelLeft
+                          <- YLabels.update s m.yLabelLeft }
     _ -> m
 
 
 view : Signal.Address Action -> Model -> (Int, Int) -> Html
 view address model (w, h) =
   let
-    -- Number 40 is from $legend-width in style.scss
-    legendLeft = LegendLeft.view (Signal.forwardTo address LegendLeft)
-                   model.legendLeft model.viewSelecter (40, h)
+    -- Number 40 is from $yLabel-width in style.scss
+    yLabelLeft = YLabels.view (Signal.forwardTo address YLabels)
+                   model.yLabelLeft model.viewSelecter (40, h)
     menuButton =
       span
-       [ class "glyphicon glyphicon-menu-hamburger legend-icon"
+       [ class "glyphicon glyphicon-menu-hamburger y-label-icon"
        , onClick address ToggleTray
        ] []
   in
@@ -181,18 +181,18 @@ view address model (w, h) =
         , PlayControls.view (Signal.forwardTo address PlayControls) model.playControls
         , ViewSelecter.view (Signal.forwardTo address ViewSelecter) model.viewSelecter
         ]
-     , div [ class "legend" ]
-        (legendLeft::menuButton::(if model.fullscreen then [] else
+     , div [ class "y-label" ]
+        (yLabelLeft::menuButton::(if model.fullscreen then [] else
           [span
-           [ class "glyphicon glyphicon-fullscreen legend-icon"
+           [ class "glyphicon glyphicon-fullscreen y-label-icon"
            -- Function defined in ports.js, fullscreen has to come from user-generated
            -- event.
            , attribute "onclick" "goFullscreen();"
            ] []]))
      ]
 
-dummy : Signal.Mailbox LegendLeft.Action
-dummy = Signal.mailbox LegendLeft.NoOp
+dummy : Signal.Mailbox YLabels.Action
+dummy = Signal.mailbox YLabels.NoOp
 
 main : Signal Html
 main = Signal.map2 (view actions.address) model Window.dimensions

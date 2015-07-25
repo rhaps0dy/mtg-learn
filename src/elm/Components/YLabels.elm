@@ -1,4 +1,4 @@
-module Components.LegendLeft (Model, init, Action(..), update, view) where
+module Components.YLabels (Model, init, Action(..), update, view) where
 
 {- This component is a canvas where all the labels are drawn. It
 depends on the ViewSelecter component
@@ -13,16 +13,16 @@ import Array exposing (Array)
 import Debug
 
 import Components.ViewSelecter as VSel
-import Components.Collage.PitchLegend as PitchLegend
-import Components.Collage.EnergyLegend as EnergyLegend
+import Components.YLabels.Pitch as Pitch
+import Components.YLabels.Energy as Energy
 
 type alias Model =
-  { pitchLegend : PitchLegend.Model
+  { pitchYLabel : Pitch.Model
   }
 
 init : Model
 init =
-  { pitchLegend = PitchLegend.init
+  { pitchYLabel = Pitch.init
   }
 
 type Action
@@ -44,8 +44,8 @@ view address model vSelModel (width, height) =
     -- and fixed.
     components =
       let
-        c1 = if vSelModel.pitch then [PitchLegend.view model.pitchLegend width'] else []
-        c2 = if vSelModel.energy then [EnergyLegend.view width'] else []
+        c1 = if vSelModel.pitch then [Pitch.view model.pitchYLabel width'] else []
+        c2 = if vSelModel.energy then [Energy.view width'] else []
       in
         c1 ++ c2
     -- TODO: fix bug in compiler where the generated program would
@@ -59,7 +59,7 @@ view address model vSelModel (width, height) =
     Html.div
      [ Html.style [ ("width", toString width ++ "px")
                   , ("height", toString height ++ "px") ]
-     , Html.class "legend-canvas"
+     , Html.class "y-label-canvas"
      ]
      [ Html.fromElement <| collage width height <|
          List.concat <| List.map2 drawComp components [0..nComp-1]

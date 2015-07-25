@@ -1,4 +1,4 @@
-module Components.Collage.PitchLegend (Model, init, Action, update, view) where
+module Components.YLabels.Pitch (Model, init, Action, update, view) where
 
 {- Component that shows the pitch label -}
 

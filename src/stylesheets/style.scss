@@ -80,21 +80,21 @@ $tray-open-timing-function: ease;
   }
 }
 
-$legend-width: 40px;
+$y-label-width: 40px;
 
-.legend {
-  width: $legend-width;
+.y-label {
+  width: $y-label-width;
   float: left;
 }
 
-.legend-canvas {
+.y-label-canvas {
   position: absolute;
 }
 
-$legend-font-size: 20px;
-.legend-icon {
-  font-size: $legend-font-size;
-  padding: ($legend-width - $legend-font-size) / 2;
+$y-label-font-size: 20px;
+.y-label-icon {
+  font-size: $y-label-font-size;
+  padding: ($y-label-width - $y-label-font-size) / 2;
   cursor: pointer;
   background-color: #ddd;
   position: static;
@@ -107,7 +107,7 @@ input[type="file"] {
 }
 
 .main-view {
-  width: calc(100% - #{$controls-width + $legend-width});
+  width: calc(100% - #{$controls-width + $y-label-width});
   height: 100%;
   background-color: green;
   float: left;

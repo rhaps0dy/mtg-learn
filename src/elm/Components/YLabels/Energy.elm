@@ -1,4 +1,4 @@
-module Components.Collage.EnergyLegend (view) where
+module Components.YLabels.Energy (view) where
 
 {- Component that shows the energy label -}
 
