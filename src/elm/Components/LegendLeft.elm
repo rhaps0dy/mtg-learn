@@ -15,12 +15,12 @@ import Components.Collage.PitchLegend as PitchLegend
 import Components.Collage.EnergyLegend as EnergyLegend
 
 type alias Model =
-  {
+  { pitchLegend : PitchLegend.Model
   }
 
-init : VSel.Model -> Model
-init vmod =
-  {
+init : Model
+init =
+  { pitchLegend = PitchLegend.init
   }
 
 type Action
@@ -37,9 +37,12 @@ view address model vSelModel (width, height) =
     separatorH = 1
     width' = toFloat width
     height' = toFloat height
+    -- Be careful: if one component overdraws its boundaries, it may
+    -- overdraw another component. This error should be easily visible
+    -- and fixed.
     components =
       let
-        c1 = if vSelModel.pitch then [PitchLegend.view width'] else []
+        c1 = if vSelModel.pitch then [PitchLegend.view model.pitchLegend width'] else []
         c2 = if vSelModel.energy then [EnergyLegend.view width'] else []
       in
         c1 ++ c2
@@ -49,7 +52,7 @@ view address model vSelModel (width, height) =
     componentH = (height' - separatorH * toFloat (nComp - 1)) / toFloat nComp
     resetY = height' / 2 - componentH / 2
     drawComp c i = (c componentH |> moveY (resetY - toFloat i * (1 + componentH)))
-                 ::(if i /= nComp-1 then [rect width' 3 |> filled grey] else [])
+                 ::(if i /= nComp-1 then [rect width' 1 |> filled grey] else [])
   in
     fromElement <| collage width height <|
       List.concat <| List.map2 drawComp components [0..nComp-1]

@@ -139,7 +139,7 @@ init =
   , songSelecter = SongSelecter.init
   , playControls = PlayControls.init
   , viewSelecter = ViewSelecter.init
-  , legendLeft = LegendLeft.init ViewSelecter.init
+  , legendLeft = LegendLeft.init
   }
 
 update : Action -> Model -> Model
