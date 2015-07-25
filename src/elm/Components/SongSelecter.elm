@@ -1,7 +1,6 @@
 module Components.SongSelecter (Model, init, Action, update, view) where
 
 import Html as Html exposing (..)
-import Bootstrap.Html exposing (..)
 import Html.Attributes as Attr exposing (..)
 import Html.Events exposing (onClick)
 import Signal
@@ -9,6 +8,7 @@ import Task
 import Array
 import String
 
+import HtmlEvents exposing (..)
 import Components.Misc exposing (..)
 
 type alias Model =
@@ -64,7 +64,7 @@ view address model =
     else
       [ h4 [ id "song-select-label" ]
          [ text "Select song to practice" ]
-      , formGroup_
+      , div [ class "form-group" ]
          [ select
             [ class "form-control"
             , attribute "aria-describedby" "song-select-label"
@@ -76,7 +76,7 @@ view address model =
          ]
       , p [] [ text "or" ]
       , h4 [] [ text "Use your own" ]
-      , formGroup_
+      , div [ class "form-group" ]
          [ label [ for "audio-upload" ] [ text "Audio file" ]
          , input
             [ type' "file"
@@ -84,7 +84,7 @@ view address model =
             , onChangeFile address <| listToAction ChangeAudio
             ] []
          ]
-      , formGroup_
+      , div [ class "form-group" ]
          [ label [ for "sheet-upload" ] [ text "Sheet music (.xml)" ]
          , input
             [ type' "file"

@@ -6,11 +6,22 @@ import Graphics.Collage exposing (..)
 import Color exposing (..)
 import Array
 import Text
+import Signal
+import Html
+import Html.Attributes as Html
+import Html.Events as Html
+import HtmlEvents exposing (..)
+import Components.Misc exposing (whStyle)
+import Debug
 
 
 type alias Model =
   { centerA3Offset : Float
   , semitoneHeight : Float
+  , mouseDown : Maybe MouseButton
+  , mousePosMD : (Int, Int)
+  , semitoneHeightMD : Float
+  , centerA3OffsetMD : Float
   }
 
 
@@ -18,15 +29,35 @@ init : Model
 init =
   { centerA3Offset = 0
   , semitoneHeight = 10
+  , mouseDown = Nothing
+  , mousePosMD = (0, 0)
+  , semitoneHeightMD = 0
+  , centerA3OffsetMD = 0
   }
 
 
 type Action
   = NoOp
+  | MouseMove (Int, Int)
+  | MouseDown (MouseButton, (Int, Int))
+  | MouseUp (MouseButton, (Int, Int))
 
 update : Action -> Model -> Model
 update action model =
-  case action of
+  case (Debug.log "action" action) of
+    MouseDown (mb, pos) ->
+      { model | mouseDown <- Just mb
+              , mousePosMD <- pos
+              , semitoneHeightMD <- model.semitoneHeight
+              , centerA3OffsetMD <- model.centerA3Offset
+              }
+    MouseUp _ ->
+      { model | mouseDown <- Nothing }
+    MouseMove (_, y) ->
+      if model.mouseDown == Nothing || model.mouseDown == Just Middle then
+        model
+      else
+        { model | centerA3Offset = model.centerA3OffsetMD + y - snd model.mousePosMD }
     _ -> model
 
 
@@ -82,8 +113,8 @@ noteRectangle width height margin a3Offset =
      |> moveY (margin + height * toFloat a3Offset)
 
 
-view : Model -> Float -> Float -> Form
-view {centerA3Offset, semitoneHeight} width height =
+view : Signal.Address Action -> Model -> Float -> Float -> Html.Html
+view address {centerA3Offset, semitoneHeight} width height =
   let
     -- We want the pitches to be centered on their rectangles, not at the bottom
     offsetForGrid = centerA3Offset + 0.5
@@ -95,4 +126,11 @@ view {centerA3Offset, semitoneHeight} width height =
     rectangles = List.map (noteRectangle width semitoneHeight margin)
                   [lowestNote..highestNote]
   in
-    group rectangles
+    Html.div
+     [ Html.style <| whStyle width height
+     , onMouseMove address MouseMove
+     , onMouseDown address MouseDown
+     , onMouseUp address MouseUp
+     , disableContextMenu
+     ]
+     [ Html.fromElement <| collage (round width) (round height) rectangles ]

@@ -41,12 +41,14 @@ body > div {
 $controls-width: 260px;
 $tray-open-duration: 0.3s;
 $tray-open-timing-function: ease;
+$border-color: #ddd;
+$border-style: 1px solid $border-color;
 
 .controls {
   padding: 0;
   float: left;
   width: $controls-width;
-  border-right: 1px solid #ddd;
+  border-right: $border-style;
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -63,7 +65,11 @@ $tray-open-timing-function: ease;
 
 .control-panel {
   border-width: 0px;
-  border-bottom: 1px solid #ddd;
+
+  &:not(:last-child) {
+    border-bottom: $border-style;
+  }
+
   padding: 15px;
 
   flex: 1 1 auto;
@@ -87,7 +93,7 @@ $y-label-width: 40px;
   float: left;
 }
 
-.y-label-canvas {
+.pos-absolute {
   position: absolute;
 }
 
@@ -96,9 +102,9 @@ $y-label-font-size: 20px;
   font-size: $y-label-font-size;
   padding: ($y-label-width - $y-label-font-size) / 2;
   cursor: pointer;
-  background-color: #ddd;
+  background-color: $border-color;
   position: static;
-  opacity: 0.7;
+  opacity: 0.8;
 }
 
 input[type="file"] {

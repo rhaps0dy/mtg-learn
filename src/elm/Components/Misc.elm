@@ -1,22 +1,19 @@
 module Components.Misc
  ( controlPanel
  , labeledCheckbox
- , onChange
- , onInput
  , File
- , onChangeFile
  , URL(..)
  , fileToURL
  , urlToFile
  , freeURL
+ , whStyle
  ) where
                       
 import Html exposing (..)
-import Bootstrap.Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, on, targetValue, targetChecked)
 
-import Json.Decode exposing ((:=), string, Decoder)
+import Json.Decode exposing ((:=), string, Decoder, int, object2)
 import Signal
 import Task
 
@@ -41,25 +38,7 @@ labeledCheckbox id' l address fun isChecked =
       ]
    ]
 
-
-onX : String -> Signal.Address a -> (String -> a) -> Attribute
-onX event address fun =
-  on event targetValue (Signal.message address << fun)
-
-onChange : Signal.Address a -> (String -> a) -> Attribute
-onChange = onX "change"
-
-onInput : Signal.Address a -> (String -> a) -> Attribute
-onInput = onX "input"
-
 type File = File
-
-fileListDecoder : Decoder (List File)
-fileListDecoder = Native.File.fileListDecoder
-
-onChangeFile : Signal.Address a -> (List File -> a) -> Attribute
-onChangeFile address fun =
-  on "change" ("target" := ("files" := fileListDecoder)) (Signal.message address << fun)
 
 type URL = URL String
 
@@ -71,3 +50,6 @@ urlToFile (URL s) = Native.File.URLToFile s
 
 freeURL : URL -> Task.Task String ()
 freeURL (URL s) = Native.File.freeURL s
+
+whStyle : a -> a -> List (String, String)
+whStyle w h = [("width", toString w ++ "px"), ("height", toString h ++ "px")]

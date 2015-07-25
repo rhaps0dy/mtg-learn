@@ -1,7 +1,6 @@
 module Components.ViewSelecter (Model, init, Action, update, view) where
 
 import Html as Html exposing (..)
-import Bootstrap.Html exposing (..)
 import Html.Attributes as Attr exposing (..)
 import Html.Events exposing (onClick)
 import Signal

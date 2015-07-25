@@ -1,13 +1,13 @@
 module Components.PlayControls (Model, init, Action, update, view) where
 
 import Html as Html exposing (..)
-import Bootstrap.Html exposing (..)
 import Html.Attributes as Attr exposing (..)
 import Html.Events exposing (onClick)
 import Signal
 import String
 
-import Components.Misc exposing (..)
+import Components.Misc exposing (labeledCheckbox)
+import HtmlEvents exposing (onChange)
 
 type alias Model =
   { playing : Bool
@@ -43,7 +43,7 @@ view : Signal.Address Action -> Model -> Html
 view address model =
   div [ class "control-panel" ]
    [ div [ class "clearfix" ]
-      [ formGroup_
+      [ div [ class "form-group" ]
          [ div [ class "input-group" ]
             [ span
                [ class "input-group-addon"
