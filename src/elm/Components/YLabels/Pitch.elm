@@ -19,6 +19,7 @@ type alias Model =
   { centerA3Offset : Float
   , semitoneHeight : Float
   , mouseDown : Maybe MouseButton
+  , mouseOver : Bool
   , mousePosMD : (Int, Int)
   , semitoneHeightMD : Float
   , centerA3OffsetMD : Float
@@ -30,6 +31,7 @@ init =
   { centerA3Offset = 0
   , semitoneHeight = 10
   , mouseDown = Nothing
+  , mouseOver = True
   , mousePosMD = (0, 0)
   , semitoneHeightMD = 0
   , centerA3OffsetMD = 0
@@ -40,7 +42,9 @@ type Action
   = NoOp
   | MouseMove (Int, Int)
   | MouseDown (MouseButton, (Int, Int))
-  | MouseUp (MouseButton, (Int, Int))
+  | MouseUp
+  | MouseOut
+  | MouseOver
 
 update : Action -> Model -> Model
 update action model =
@@ -51,13 +55,22 @@ update action model =
               , semitoneHeightMD <- model.semitoneHeight
               , centerA3OffsetMD <- model.centerA3Offset
               }
-    MouseUp _ ->
+    MouseUp ->
       { model | mouseDown <- Nothing }
     MouseMove (_, y) ->
-      if model.mouseDown == Nothing || model.mouseDown == Just Middle then
+      if model.mouseOver && (model.mouseDown == Nothing ||
+                             model.mouseDown == Just Middle) then
         model
       else
-        { model | centerA3Offset = model.centerA3OffsetMD + y - snd model.mousePosMD }
+        if model.mouseDown == Just Left then
+          -- compiler got stuck here on an infinite loop when <- was =
+          { model | centerA3Offset <- model.centerA3OffsetMD +
+                      toFloat (y - snd model.mousePosMD) / model.semitoneHeight }
+        else
+          { model | semitoneHeight <- model.semitoneHeightMD +
+                      toFloat (y - snd model.mousePosMD) / 10 }
+    MouseOut ->
+      { model | mouseDown <- Nothing }
     _ -> model
 
 
@@ -104,10 +117,9 @@ noteRectangle width height margin a3Offset =
     rectangle = rect width height
                  |> filled c1
     text' = Text.fromString (a3OffsetToName a3Offset)
-             |> Text.height (height - 2)
+             |> Text.height (min (height - 2) 14)
              |> Text.color c2
              |> text
-             |> moveX 10
   in
     group [rectangle, text']
      |> moveY (margin + height * toFloat a3Offset)
@@ -121,8 +133,7 @@ view address {centerA3Offset, semitoneHeight} width height =
     nSemitonesHalfHeight = (height / 2) / semitoneHeight
     lowestNote = floor <| offsetForGrid - nSemitonesHalfHeight
     highestNote = floor <| offsetForGrid + nSemitonesHalfHeight
-    margin =
-      height / 2 - (toFloat highestNote + 1 - offsetForGrid) * semitoneHeight
+    margin = -centerA3Offset * semitoneHeight
     rectangles = List.map (noteRectangle width semitoneHeight margin)
                   [lowestNote..highestNote]
   in
@@ -130,7 +141,9 @@ view address {centerA3Offset, semitoneHeight} width height =
      [ Html.style <| whStyle width height
      , onMouseMove address MouseMove
      , onMouseDown address MouseDown
-     , onMouseUp address MouseUp
+     , onMouseUp address (\_ -> MouseUp)
+     , Html.onMouseOut address MouseOut
+     , Html.onMouseOver address MouseOver
      , disableContextMenu
      ]
      [ Html.fromElement <| collage (round width) (round height) rectangles ]

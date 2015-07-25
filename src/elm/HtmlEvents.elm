@@ -10,6 +10,7 @@ module HtmlEvents
   ) where
 
 import Html exposing (Attribute)
+import Html.Attributes as Html
 import Html.Events as Events exposing (onClick, on, targetValue, targetChecked)
 import Json.Decode as Decode exposing ((:=), string, Decoder, int, object2)
 import Signal
@@ -67,12 +68,5 @@ onChangeFile address fun =
   on "change" ("target" := ("files" := fileListDecoder))
     (Signal.message address << fun)
 
-dummy : Signal.Mailbox Int
-dummy = Signal.mailbox 0
-
 disableContextMenu : Attribute
-disableContextMenu =
-  Events.onWithOptions "contextmenu"
-    { stopPropagation = False
-    , preventDefault = True
-    } int (\_ -> Signal.message dummy.address 0)
+disableContextMenu = Html.attribute "oncontextmenu" "event.preventDefault();"
