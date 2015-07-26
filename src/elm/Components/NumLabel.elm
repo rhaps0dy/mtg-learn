@@ -1,4 +1,12 @@
-module Components.NumLabel (Model, init, Action, update, view, ViewType) where
+module Components.NumLabel
+  ( Model
+  , init
+  , Action
+  , update
+  , viewOneDim
+  , view
+  , ViewType
+  ) where
 
 {- This component shows a numeric scale in either the X or the Y axis
 -}
@@ -77,21 +85,30 @@ drawLine line num =
 
 type alias ViewType =
   Signal.Address Action -> Model -> (Int, Int) -> Html.Html
+
+lines : Float -> Float -> Float -> (Float -> Form -> Form) -> Path
+      -> (Path -> Int -> Form) -> List Form
+lines length unitWidth center move' line drawFun =
+  let
+    nLinesHalfWidth = (length / 2) / unitWidth
+    firstLine = floor <| -center - nLinesHalfWidth
+    lastLine = ceiling <| -center + nLinesHalfWidth
+    drawMove x = 
+      drawFun line x
+       |> move' ((center + toFloat x) * unitWidth)
+  in
+    List.map drawMove [firstLine..lastLine]
    
-view : Path -> ((Float, Float) -> Float) -> (Float -> Form -> Form) -> ViewType
-view line tfun move' address model (width', height') =
+viewOneDim : Path -> ((Float, Float) -> Float) -> (Float -> Form -> Form)
+             -> ViewType
+viewOneDim line tfun move' address model (width', height') =
   let
     width = toFloat width'
     height = toFloat height'
     r = rect width height
          |> filled black
-    nLinesHalfWidth = (tfun (width, height) / 2) / model.unitWidth
-    firstLine = floor <| -model.center - nLinesHalfWidth
-    lastLine = ceiling <| -model.center + nLinesHalfWidth
-    lines = List.map
-             (\x -> drawLine line x
-                     |> move' ((model.center + toFloat x) * model.unitWidth))
-             [firstLine..lastLine]
+    lines' = lines (tfun (width, height)) model.unitWidth
+               model.center move' line drawLine
   in
     Html.div
      [ Html.style <| whStyle width' height'
@@ -100,4 +117,22 @@ view line tfun move' address model (width', height') =
      , onMouseUp address (\_ -> MouseUp)
      , Html.onMouseOut address MouseUp
      ]
-     [ Html.fromElement <| collage width' height' (r::lines) ]
+     [ Html.fromElement <| collage width' height' (r::lines') ]
+
+view : Float -> Float -> Float -> Float -> Int -> Int -> Html.Html
+view centerX widthX centerY widthY width' height' =
+  let
+    width = toFloat width'
+    height = toFloat height'
+    r = rect width height
+         |> filled black
+    lineX = segment (0, -width/2) (0, width/2)
+    lineY = segment (-width/2, 0) (width/2, 0)
+    drawFun p _ = traced { defaultLine | color <- white } p
+    linesX = lines width widthX centerX moveX lineX drawFun
+    linesY = lines height widthY centerY moveY lineY drawFun
+  in
+    Html.div
+     [ Html.style <| whStyle width' height'
+     ]
+     [ Html.fromElement <| collage width' height' (r::(linesX ++ linesY)) ]

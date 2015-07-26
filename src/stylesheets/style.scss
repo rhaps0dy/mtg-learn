@@ -105,12 +105,9 @@ $y-label-width: 40px;
   left: $y-label-width;
   top: 0px;
 
-  > div {
-    position: absolute;
-  }
-
-  > div:last-child {
+  > div:first-child {
     bottom: 0px;
+    position: absolute;
   }
 }
 

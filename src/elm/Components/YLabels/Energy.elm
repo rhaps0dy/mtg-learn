@@ -23,10 +23,10 @@ update : Action -> Model -> Model
 update = NL.update (\x -> -(snd x))
 
 line : Path
-line = segment (13, 0) (20, 0)
+line = segment (20-4, 0) (20, 0)
 
 view' : NL.ViewType
-view' = NL.view line snd moveY
+view' = NL.viewOneDim line snd moveY
 
 view : Signal.Address Action -> Model -> Float -> Float -> Html.Html
 view address model width height =

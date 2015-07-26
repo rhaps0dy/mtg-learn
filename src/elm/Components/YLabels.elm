@@ -1,4 +1,12 @@
-module Components.YLabels (Model, init, Action(..), update, labelWidth, view) where
+module Components.YLabels
+  (Model
+  , init
+  , Action(..)
+  , update
+  , labelWidth
+  , getNCompAndHeight
+  , view
+  ) where
 
 {- This component is a canvas where all the labels are drawn. It
 depends on the ViewSelecter component
@@ -44,15 +52,22 @@ update action model =
 labelWidth : Int
 labelWidth = 40
 
+getNCompAndHeight : Float -> VSel.Model -> (Int, Float)
+getNCompAndHeight height' vSelModel =
+  let
+    nComp = (if vSelModel.pitch then 1 else 0) + (if vSelModel.energy then 1 else 0)
+    componentH = height' / toFloat nComp
+  in
+    (nComp, componentH)
+
 view : Signal.Address Action -> Model -> VSel.Model -> (Int, Int) -> Html.Html
 view address model vSelModel (width, height) =
   let
     width' = toFloat width
-    height' = toFloat height
+    height' = toFloat (height - 25)
+    (nComp, componentH) = getNCompAndHeight height' vSelModel
     -- TODO: fix bug in compiler where the generated program would
     -- calculate nComp before components because there was a circular dependency
-    nComp = (if vSelModel.pitch then 1 else 0) + (if vSelModel.energy then 1 else 0)
-    componentH = height' / toFloat nComp
     components =
       let
         c1 = if vSelModel.pitch then [

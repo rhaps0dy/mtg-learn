@@ -4,6 +4,8 @@ module Components.XLabel (Model, init, Action, update, view) where
 -}
 
 import Components.NumLabel as NL
+import Components.YLabels as YLs
+import Components.ViewSelecter as VSel
 import Graphics.Collage exposing (segment, Path, moveX)
 import HtmlEvents exposing (..)
 import Components.Misc exposing (whStyle)
@@ -29,19 +31,44 @@ topMostPosition : Float
 topMostPosition = toFloat labelHeight / 2
 
 lineLength : Float
-lineLength = 7
+lineLength = 4
 
 line : Path
 line = segment (0, topMostPosition) (0, topMostPosition - lineLength)
 
 view' : NL.ViewType
-view' = NL.view line fst moveX
+view' = NL.viewOneDim line fst moveX
 
-view : NL.ViewType
-view address model (width, height) =
-  Html.div
-   [ Html.style <| whStyle width height
-   , Html.class "main-canvases"
-   ]
-   [ view' address model (width, labelHeight)
-   ]
+view : Signal.Address Action -> Model -> YLs.Model -> VSel.Model -> (Int, Int) -> Html.Html
+view address model ylsModel vSelModel (width, height) =
+  let
+    width' = toFloat width
+    height' = toFloat height
+    adjHeight' = toFloat (height - labelHeight)
+    (nComp, componentH) = YLs.getNCompAndHeight adjHeight' vSelModel
+    panels =
+      let
+        c1 = if vSelModel.pitch then [
+               NL.view
+                 model.center model.unitWidth
+                 -ylsModel.pitch.centerA3Offset ylsModel.pitch.semitoneHeight
+                 width (round componentH)
+             ] else []
+        c2 = if vSelModel.energy then [
+               NL.view
+                 model.center model.unitWidth
+                 ylsModel.energy.center ylsModel.energy.unitWidth
+                 width (round componentH)
+             ] else []
+      in
+        c1 ++ c2
+  in
+    Html.div
+     [ Html.style <| whStyle width' height'
+     , Html.class "main-canvases"
+     ]
+     [ view' address model (width, labelHeight)
+     , Html.div
+        [ Html.style <| whStyle width' adjHeight'
+        ] panels
+     ]

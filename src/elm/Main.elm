@@ -4,6 +4,7 @@ import Signal
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
+import Html.Lazy as Html
 import Window
 import Graphics.Collage
 import Debug
@@ -66,7 +67,7 @@ update a m =
 view : Signal.Address Action -> Model -> (Int, Int) -> Html
 view address model (w, h) =
   let
-    yLabels = YLabels.view (Signal.forwardTo address YLabels)
+    yLabels = Html.lazy3 (YLabels.view (Signal.forwardTo address YLabels))
                    model.yLabels model.viewSelecter (YLabels.labelWidth, h)
     menuButton =
       span
@@ -77,16 +78,17 @@ view address model (w, h) =
     div
      [ class "fullscreen"
      , disableContextMenu ]
-     [ XLabel.view (Signal.forwardTo address XLabel) model.xLabel (w-YLabels.labelWidth, h)
+     [ Html.lazy3 (XLabel.view (Signal.forwardTo address XLabel) model.xLabel)
+         model.yLabels model.viewSelecter (w-YLabels.labelWidth, h)
      , div
         [ classList
            [ ("controls", True)
            , ("tray-closed", model.trayClosed)
            ]
         ]
-        [ SongSelecter.view (Signal.forwardTo address SongSelecter) model.songSelecter
-        , PlayControls.view (Signal.forwardTo address PlayControls) model.playControls
-        , ViewSelecter.view (Signal.forwardTo address ViewSelecter) model.viewSelecter
+        [ Html.lazy2 SongSelecter.view (Signal.forwardTo address SongSelecter) model.songSelecter
+        , Html.lazy2 PlayControls.view (Signal.forwardTo address PlayControls) model.playControls
+        , Html.lazy2 ViewSelecter.view (Signal.forwardTo address ViewSelecter) model.viewSelecter
         ]
      , div [ class "y-label" ]
         (yLabels::menuButton::(if model.fullscreen then [] else
