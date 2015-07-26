@@ -25,11 +25,11 @@ update = NL.update (\x -> -(snd x))
 line : Path
 line = segment (13, 0) (20, 0)
 
-view' : List (String, String) -> Signal.Address Action -> Model -> (Int, Int) -> Html.Html
+view' : NL.ViewType
 view' = NL.view line snd moveY
 
 view : Signal.Address Action -> Model -> Float -> Float -> Html.Html
 view address model width height =
   Html.div
    [ Html.style <| whStyle width height ]
-   [ view' [] address model (round width, round height) ]
+   [ view' address model (round width, round height) ]

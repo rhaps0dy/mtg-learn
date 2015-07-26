@@ -34,17 +34,14 @@ lineLength = 7
 line : Path
 line = segment (0, topMostPosition) (0, topMostPosition - lineLength)
 
-view' : List (String, String) -> Signal.Address Action -> Model -> (Int, Int) -> Html.Html
+view' : NL.ViewType
 view' = NL.view line fst moveX
 
-view : Signal.Address Action -> Model -> (Int, Int) -> Html.Html
+view : NL.ViewType
 view address model (width, height) =
   Html.div
    [ Html.style <| whStyle width height
    , Html.class "main-canvases"
    ]
-   [ view' [ ("margin-top", toString (height - labelHeight) ++ "px")
-           , ("position", "absolute")
-           ]
-       address model (width, labelHeight)
+   [ view' address model (width, labelHeight)
    ]

@@ -1,4 +1,4 @@
-module Components.NumLabel (Model, init, Action, update, view) where
+module Components.NumLabel (Model, init, Action, update, view, ViewType) where
 
 {- This component shows a numeric scale in either the X or the Y axis
 -}
@@ -74,11 +74,12 @@ drawLine line num =
        |> text
   in
     group [line', text']
+
+type alias ViewType =
+  Signal.Address Action -> Model -> (Int, Int) -> Html.Html
    
-view : Path -> ((Float, Float) -> Float) -> (Float -> Form -> Form)
-       -> List (String, String)
-       -> Signal.Address Action -> Model -> (Int, Int) -> Html.Html
-view line tfun move' style' address model (width', height') =
+view : Path -> ((Float, Float) -> Float) -> (Float -> Form -> Form) -> ViewType
+view line tfun move' address model (width', height') =
   let
     width = toFloat width'
     height = toFloat height'
@@ -93,7 +94,7 @@ view line tfun move' style' address model (width', height') =
              [firstLine..lastLine]
   in
     Html.div
-     [ Html.style <| whStyle width' height' ++ style'
+     [ Html.style <| whStyle width' height'
      , onMouseMove address MouseMove
      , onMouseDown address MouseDown
      , onMouseUp address (\_ -> MouseUp)

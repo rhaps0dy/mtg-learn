@@ -104,6 +104,14 @@ $y-label-width: 40px;
   position: absolute;
   left: $y-label-width;
   top: 0px;
+
+  > div {
+    position: absolute;
+  }
+
+  > div:last-child {
+    bottom: 0px;
+  }
 }
 
 $y-label-font-size: 20px;
