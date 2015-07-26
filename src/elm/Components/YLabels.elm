@@ -1,4 +1,4 @@
-module Components.YLabels (Model, init, Action(..), update, view) where
+module Components.YLabels (Model, init, Action(..), update, labelWidth, view) where
 
 {- This component is a canvas where all the labels are drawn. It
 depends on the ViewSelecter component
@@ -15,6 +15,7 @@ import Signal
 import Components.ViewSelecter as VSel
 import Components.YLabels.Pitch as Pitch
 import Components.YLabels.Energy as Energy
+import Components.Misc exposing (whStyle)
 
 type alias Model =
   { pitch : Pitch.Model
@@ -39,6 +40,10 @@ update action model =
     Energy a -> { model | energy <- Energy.update a model.energy }
     _ -> model
 
+-- labelWidth is from $yLabel-width in style.scss
+labelWidth : Int
+labelWidth = 40
+
 view : Signal.Address Action -> Model -> VSel.Model -> (Int, Int) -> Html.Html
 view address model vSelModel (width, height) =
   let
@@ -62,7 +67,6 @@ view address model vSelModel (width, height) =
         c1 ++ c2
   in
     Html.div
-     [ Html.style [ ("width", toString width ++ "px")
-                  , ("height", toString height ++ "px") ]
+     [ Html.style <| whStyle width height
      , Html.class "pos-absolute"
      ] components

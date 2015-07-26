@@ -19,7 +19,6 @@ type alias Model =
   { centerA3Offset : Float
   , semitoneHeight : Float
   , mouseDown : Maybe MouseButton
-  , mouseOver : Bool
   , mousePosMD : (Int, Int)
   , semitoneHeightMD : Float
   , centerA3OffsetMD : Float
@@ -31,7 +30,6 @@ init =
   { centerA3Offset = 0
   , semitoneHeight = 10
   , mouseDown = Nothing
-  , mouseOver = True
   , mousePosMD = (0, 0)
   , semitoneHeightMD = 0
   , centerA3OffsetMD = 0
@@ -43,12 +41,10 @@ type Action
   | MouseMove (Int, Int)
   | MouseDown (MouseButton, (Int, Int))
   | MouseUp
-  | MouseOut
-  | MouseOver
 
 update : Action -> Model -> Model
 update action model =
-  case (Debug.log "action" action) of
+  case action of
     MouseDown (mb, pos) ->
       { model | mouseDown <- Just mb
               , mousePosMD <- pos
@@ -58,8 +54,7 @@ update action model =
     MouseUp ->
       { model | mouseDown <- Nothing }
     MouseMove (_, y) ->
-      if model.mouseOver && (model.mouseDown == Nothing ||
-                             model.mouseDown == Just Middle) then
+      if model.mouseDown == Nothing || model.mouseDown == Just Middle then
         model
       else
         if model.mouseDown == Just Left then
@@ -69,8 +64,6 @@ update action model =
         else
           { model | semitoneHeight <- model.semitoneHeightMD +
                       toFloat (y - snd model.mousePosMD) / 10 }
-    MouseOut ->
-      { model | mouseDown <- Nothing }
     _ -> model
 
 
@@ -142,8 +135,6 @@ view address {centerA3Offset, semitoneHeight} width height =
      , onMouseMove address MouseMove
      , onMouseDown address MouseDown
      , onMouseUp address (\_ -> MouseUp)
-     , Html.onMouseOut address MouseOut
-     , Html.onMouseOver address MouseOver
-     , disableContextMenu
+     , Html.onMouseOut address MouseUp
      ]
      [ Html.fromElement <| collage (round width) (round height) rectangles ]

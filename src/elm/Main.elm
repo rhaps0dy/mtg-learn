@@ -8,21 +8,22 @@ import Window
 import Graphics.Collage
 import Debug
 
-
 import Components.Misc exposing (..)
 import Components.SongSelecter as SongSelecter
 import Components.PlayControls as PlayControls
 import Components.ViewSelecter as ViewSelecter
 import Components.YLabels as YLabels
+import Components.XLabel as XLabel
+import HtmlEvents exposing (disableContextMenu)
 
 type Action
   = NoOp
   | ToggleTray
-  | Fullscreen Bool
   | SongSelecter SongSelecter.Action
   | PlayControls PlayControls.Action
   | ViewSelecter ViewSelecter.Action
   | YLabels YLabels.Action
+  | XLabel XLabel.Action
 
 type alias Model =
   { trayClosed : Bool
@@ -31,6 +32,7 @@ type alias Model =
   , playControls : PlayControls.Model
   , viewSelecter : ViewSelecter.Model
   , yLabels : YLabels.Model
+  , xLabel : XLabel.Model
   }
 
 init : Model
@@ -41,13 +43,13 @@ init =
   , playControls = PlayControls.init
   , viewSelecter = ViewSelecter.init
   , yLabels = YLabels.init
+  , xLabel = XLabel.init
   }
 
 update : Action -> Model -> Model
 update a m =
   case a of
     ToggleTray -> { m | trayClosed <- not m.trayClosed }
-    Fullscreen b -> { m | fullscreen <- b }
     SongSelecter s -> { m | songSelecter
                           <- SongSelecter.update s m.songSelecter }
     PlayControls c -> { m | playControls
@@ -55,24 +57,28 @@ update a m =
     ViewSelecter s -> { m | viewSelecter
                           <- ViewSelecter.update s m.viewSelecter }
     YLabels s -> { m | yLabels
-                          <- YLabels.update s m.yLabels }
+                     <- YLabels.update s m.yLabels }
+    XLabel s -> { m | xLabel
+                    <- XLabel.update s m.xLabel }
     _ -> m
 
 
 view : Signal.Address Action -> Model -> (Int, Int) -> Html
 view address model (w, h) =
   let
-    -- Number 40 is from $yLabel-width in style.scss
     yLabels = YLabels.view (Signal.forwardTo address YLabels)
-                   model.yLabels model.viewSelecter (40, h)
+                   model.yLabels model.viewSelecter (YLabels.labelWidth, h)
     menuButton =
       span
        [ class "glyphicon glyphicon-menu-hamburger y-label-icon"
        , onClick address ToggleTray
        ] []
   in
-    div [ class "fullscreen" ]
-     [ div
+    div
+     [ class "fullscreen"
+     , disableContextMenu ]
+     [ XLabel.view (Signal.forwardTo address XLabel) model.xLabel (w-YLabels.labelWidth, h)
+     , div
         [ classList
            [ ("controls", True)
            , ("tray-closed", model.trayClosed)
@@ -92,19 +98,11 @@ view address model (w, h) =
            ] []]))
      ]
 
-dummy : Signal.Mailbox YLabels.Action
-dummy = Signal.mailbox YLabels.NoOp
-
 main : Signal Html
 main = Signal.map2 (view actions.address) model Window.dimensions
 
 model : Signal Model
-model = Signal.foldp update init (Signal.merge actions.signal jsInputs)
+model = Signal.foldp update init actions.signal
 
 actions : Signal.Mailbox Action
 actions = Signal.mailbox NoOp
-
-jsInputs : Signal Action
-jsInputs = Signal.map Fullscreen jsFullscreen
-
-port jsFullscreen : Signal Bool

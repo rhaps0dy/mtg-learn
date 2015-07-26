@@ -54,6 +54,8 @@ $border-style: 1px solid $border-color;
   flex-direction: column;
   overflow-y: auto;
   overflow-x: hidden;
+  position: relative;
+  z-index: 1;
   @include transition-property(margin-left);
   @include transition-duration($tray-open-duration);
   @include transition-timing-function($tray-open-timing-function);
@@ -65,6 +67,7 @@ $border-style: 1px solid $border-color;
 
 .control-panel {
   border-width: 0px;
+  background-color: white;
 
   &:not(:last-child) {
     border-bottom: $border-style;
@@ -97,6 +100,12 @@ $y-label-width: 40px;
   position: absolute;
 }
 
+.main-canvases {
+  position: absolute;
+  left: $y-label-width;
+  top: 0px;
+}
+
 $y-label-font-size: 20px;
 .y-label-icon {
   font-size: $y-label-font-size;
@@ -104,7 +113,7 @@ $y-label-font-size: 20px;
   cursor: pointer;
   background-color: $border-color;
   position: static;
-  opacity: 0.8;
+  opacity: 0.9;
 }
 
 input[type="file"] {
