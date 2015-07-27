@@ -6,6 +6,8 @@ module Components.NumLabel
   , viewOneDim
   , view
   , ViewType
+  , backgroundColor
+  , foregroundColor
   ) where
 
 {- This component shows a numeric scale in either the X or the Y axis
@@ -21,6 +23,12 @@ import Signal
 import Text
 import HtmlEvents exposing (..)
 import Components.Misc exposing (whStyle)
+
+backgroundColor : Color
+backgroundColor = black
+
+foregroundColor : Color
+foregroundColor = white
 
 type alias Model =
   { center : Float
@@ -74,11 +82,11 @@ update tfun action model =
 drawLine : Path -> Int -> Form
 drawLine line num =
   let
-    line' = traced { defaultLine | color <- white } line
+    line' = traced { defaultLine | color <- foregroundColor } line
     text' =
       Text.fromString (toString num)
        |> Text.height (min (14 - 2) 14)
-       |> Text.color white
+       |> Text.color foregroundColor
        |> text
   in
     group [line', text']
@@ -106,7 +114,7 @@ viewOneDim : Path -> ((Float, Float) -> Float) -> (Float -> Form -> Form)
 viewOneDim line tfun move' address model (width, height) =
   let
     r = rect width height
-         |> filled black
+         |> filled backgroundColor
     lines' = lines (tfun (width, height)) model.unitWidth
                model.center move' line drawLine
     width' = round width
@@ -127,10 +135,10 @@ view centerX widthX centerY widthY width height =
     width' = round width
     height' = round height
     r = rect width height
-         |> filled black
+         |> filled backgroundColor
     lineX = segment (0, -width/2) (0, width/2)
     lineY = segment (-width/2, 0) (width/2, 0)
-    drawFun p _ = traced { defaultLine | color <- white } p
+    drawFun p _ = traced { defaultLine | color <- foregroundColor } p
     linesX = lines width widthX centerX moveX lineX drawFun
     linesY = lines height widthY centerY moveY lineY drawFun
   in

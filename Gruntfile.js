@@ -3,7 +3,8 @@ module.exports = function(grunt) {
     pkg: grunt.file.readJSON('package.json'),
     watch: {
       options: {
-        livereload: true
+        // livereload interferes with the xml files served from grunt
+        livereload: false
       },
       elm: {
         files: ['src/elm/**'],
@@ -40,7 +41,7 @@ module.exports = function(grunt) {
         options: {
           port: 8000,
           base: 'dist',
-          livereload: true
+          livereload: false
         }
       }
     },
