@@ -84,4 +84,4 @@ view address model vSelModel (width, height) =
     Html.div
      [ Html.style <| whStyle width height
      , Html.class "pos-absolute"
-     ] components
+     ] (components ++ [Html.div [ Html.class "black-axis-end" ] [ ] ])

@@ -111,6 +111,14 @@ $y-label-width: 40px;
   }
 }
 
+$x-label-height: 25px;
+
+.black-axis-end {
+  background-color: black;
+  width: $y-label-width;
+  height: $x-label-height;
+}
+
 $y-label-font-size: 20px;
 .y-label-icon {
   font-size: $y-label-font-size;
