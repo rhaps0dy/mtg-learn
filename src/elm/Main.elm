@@ -1,6 +1,6 @@
 module Main (main) where
 
-import Signal
+import Signal exposing ((<~))
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
@@ -28,6 +28,7 @@ type Action
   | ViewSelecter ViewSelecter.Action
   | YLabels YLabels.Action
   | XLabel XLabel.Action
+  | Fullscreen Bool
 
 type alias Model =
   { trayClosed : Bool
@@ -64,6 +65,7 @@ update a m =
                      <- YLabels.update s m.yLabels }
     XLabel s -> { m | xLabel
                     <- XLabel.update s m.xLabel }
+    Fullscreen b -> { m | fullscreen <- Debug.log "b" b }
     _ -> m
 
 
@@ -94,13 +96,22 @@ view address model (w, h) =
         , Html.lazy2 ViewSelecter.view (Signal.forwardTo address ViewSelecter) model.viewSelecter
         ]
      , div [ class "y-label" ]
-        (yLabels::menuButton::(if model.fullscreen then [] else
-          [span
-           [ class "glyphicon glyphicon-fullscreen y-label-icon"
+        [ yLabels
+        , menuButton
+        , span
+           [ class <| "glyphicon y-label-icon " ++
+               if model.fullscreen then
+                 "glyphicon-resize-small"
+               else
+                 "glyphicon-resize-full"
            -- Function defined in ports.js, fullscreen has to come from user-generated
            -- event.
-           , attribute "onclick" "goFullscreen();"
-           ] []]))
+           , attribute "onclick" <| if model.fullscreen then
+                                      "goFullscreen(false);"
+                                    else
+                                      "goFullscreen(true);"
+           ] []
+        ]
      ]
 
 main : Signal Html
@@ -111,6 +122,11 @@ model = Signal.foldp update init actions.signal
 
 actions : Signal.Mailbox Action
 actions = Signal.mailbox NoOp
+
+port fullscreen : Signal Bool
+
+port sendFullscreen : Signal (Task x ())
+port sendFullscreen = Signal.send actions.address <~ Signal.map Fullscreen fullscreen
 
 port sheetFiles : Signal (Task String ())
 port sheetFiles =

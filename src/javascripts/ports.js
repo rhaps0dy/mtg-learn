@@ -1,16 +1,51 @@
-var elm_app = Elm.fullscreen(Elm.Main, {});
+var elm_app = Elm.fullscreen(Elm.Main, {fullscreen: false});
 
 (function(window, document, elm_app) {
-    window.goFullscreen = function() {
+    window.goFullscreen = function(state) {
         var i = document.body;
-        if (i.requestFullscreen) {
-            i.requestFullscreen();
-        } else if (i.webkitRequestFullscreen) {
-            i.webkitRequestFullscreen();
-        } else if (i.mozRequestFullScreen) {
-            i.mozRequestFullScreen();
-        } else if (i.msRequestFullscreen) {
-            i.msRequestFullscreen();
+        if(state) {
+            if (i.requestFullscreen) {
+                i.requestFullscreen();
+            } else if (i.webkitRequestFullscreen) {
+                i.webkitRequestFullscreen();
+            } else if (i.mozRequestFullScreen) {
+                i.mozRequestFullScreen();
+            } else if (i.msRequestFullscreen) {
+                i.msRequestFullscreen();
+            }
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            } else if (document.mozCancelFullScreen) {
+                document.mozCancelFullScreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
+            }
         }
     };
+
+    function fsHandler() {
+        if (document.fullscreenElement ||
+            document.webkitFullscreenElement ||
+            document.mozFullScreenElement ||
+            document.msFullscreenElement) {
+            elm_app.ports.fullscreen.send(true);
+        } else {
+            elm_app.ports.fullscreen.send(false);
+        }
+    }
+
+    if('onfullscreenchange' in document) {
+        document.addEventListener('fullscreenchange', fsHandler);
+    } else if('onwebkitfullscreenchange' in document) {
+        document.addEventListener('webkitfullscreenchange', fsHandler);
+    } else if('onmozfullscreenchange' in document) {
+        document.addEventListener('mozfullscreenchange', fsHandler);
+    } else if('onMSFullscreenChange' in document) {
+        document.addEventListener('MSFullscreenChange', fsHandler);
+    } else {
+        console.warn("No fullscreen support!");
+    }
 })(window, document, elm_app);
