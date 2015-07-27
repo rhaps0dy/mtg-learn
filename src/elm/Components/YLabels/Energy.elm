@@ -30,6 +30,4 @@ view' = NL.viewOneDim line snd moveY
 
 view : Signal.Address Action -> Model -> Float -> Float -> Html.Html
 view address model width height =
-  Html.div
-   [ Html.style <| whStyle width height ]
-   [ view' address model (round width, round height) ]
+   view' address model (width, height)

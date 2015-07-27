@@ -44,7 +44,8 @@ view address model ylsModel vSelModel (width, height) =
   let
     width' = toFloat width
     height' = toFloat height
-    adjHeight' = toFloat (height - labelHeight)
+    labelHeight' = toFloat labelHeight
+    adjHeight' = height' - labelHeight'
     (nComp, componentH) = YLs.getNCompAndHeight adjHeight' vSelModel
     panels =
       let
@@ -52,13 +53,13 @@ view address model ylsModel vSelModel (width, height) =
                NL.view
                  model.center model.unitWidth
                  -ylsModel.pitch.centerA3Offset ylsModel.pitch.semitoneHeight
-                 width (round componentH)
+                 width' componentH
              ] else []
         c2 = if vSelModel.energy then [
                NL.view
                  model.center model.unitWidth
                  ylsModel.energy.center ylsModel.energy.unitWidth
-                 width (round componentH)
+                 width' componentH
              ] else []
       in
         c1 ++ c2
@@ -67,7 +68,7 @@ view address model ylsModel vSelModel (width, height) =
      [ Html.style <| whStyle width' height'
      , Html.class "main-canvases"
      ]
-     [ view' address model (width, labelHeight)
+     [ view' address model (width', labelHeight')
      , Html.div
         [ Html.style <| whStyle width' adjHeight'
         ] panels

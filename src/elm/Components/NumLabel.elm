@@ -84,7 +84,7 @@ drawLine line num =
     group [line', text']
 
 type alias ViewType =
-  Signal.Address Action -> Model -> (Int, Int) -> Html.Html
+  Signal.Address Action -> Model -> (Float, Float) -> Html.Html
 
 lines : Float -> Float -> Float -> (Float -> Form -> Form) -> Path
       -> (Path -> Int -> Form) -> List Form
@@ -99,16 +99,18 @@ lines length unitWidth center move' line drawFun =
   in
     List.map drawMove [firstLine..lastLine]
    
+-- Careful: conventions for float being ' or no ' are reversed here
+
 viewOneDim : Path -> ((Float, Float) -> Float) -> (Float -> Form -> Form)
              -> ViewType
-viewOneDim line tfun move' address model (width', height') =
+viewOneDim line tfun move' address model (width, height) =
   let
-    width = toFloat width'
-    height = toFloat height'
     r = rect width height
          |> filled black
     lines' = lines (tfun (width, height)) model.unitWidth
                model.center move' line drawLine
+    width' = round width
+    height' = round height
   in
     Html.div
      [ Html.style <| whStyle width' height'
@@ -119,11 +121,11 @@ viewOneDim line tfun move' address model (width', height') =
      ]
      [ Html.fromElement <| collage width' height' (r::lines') ]
 
-view : Float -> Float -> Float -> Float -> Int -> Int -> Html.Html
-view centerX widthX centerY widthY width' height' =
+view : Float -> Float -> Float -> Float -> Float -> Float -> Html.Html
+view centerX widthX centerY widthY width height =
   let
-    width = toFloat width'
-    height = toFloat height'
+    width' = round width
+    height' = round height
     r = rect width height
          |> filled black
     lineX = segment (0, -width/2) (0, width/2)
@@ -133,6 +135,6 @@ view centerX widthX centerY widthY width' height' =
     linesY = lines height widthY centerY moveY lineY drawFun
   in
     Html.div
-     [ Html.style <| whStyle width' height'
+     [ Html.style <| whStyle width height
      ]
      [ Html.fromElement <| collage width' height' (r::(linesX ++ linesY)) ]
