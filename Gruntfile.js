@@ -132,15 +132,21 @@ module.exports = function(grunt) {
       prod: {
         dest: 'dist/<%= pkg.name %>.appcache',
         cache: {
-          patterns: ['dist/**/*'],
+          patterns: ['dist/*', 'dist/images/*', 'dist/fonts/*'],
           literals: [
-            'https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/',
-            'https://code.jquery.com/jquery-2.1.4.min.js',
+            '//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css',
+            '//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/fonts/glyphicons-halflings-regular.woff',
           ],
         },
+        network: [
+          'data/blueBossa.ogg',
+          'data/blueBossa.xml',
+          '//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css',
+          '//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/fonts/glyphicons-halflings-regular.woff',
+        ],
         fallback: [
-          '/ /index.html',
-        ]
+          '/ index.html'
+        ],
       }
     },
     clean: ['dist', 'build']
