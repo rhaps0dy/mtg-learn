@@ -85,7 +85,7 @@ view address model =
          , input
             [ class "btn btn-default pull-right"
             , type' "button"
-            , value "Get score"
+            , value "Evaluate"
             , onClick address GetScore
             ] []
          ]
