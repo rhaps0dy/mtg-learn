@@ -20,6 +20,7 @@ html, body {
   margin: 0;
   padding: 0;
   @include user-select(none);
+  background-color: black;
 }
 
 body > div {
@@ -56,6 +57,7 @@ $border-style: 1px solid $border-color;
   overflow-x: hidden;
   position: relative;
   z-index: 1;
+  background-color: white;
   @include transition-property(margin-left);
   @include transition-duration($tray-open-duration);
   @include transition-timing-function($tray-open-timing-function);
@@ -67,7 +69,6 @@ $border-style: 1px solid $border-color;
 
 .control-panel {
   border-width: 0px;
-  background-color: white;
 
   &:not(:last-child) {
     border-bottom: $border-style;
@@ -75,14 +76,15 @@ $border-style: 1px solid $border-color;
 
   padding: 15px;
 
-  flex: 1 1 auto;
   display: flex;
   align-items: center;
   justify-content: center;
 
   // Deal with bug 1 of flexbugs
   // flex divs shrink smaller than their contents in webkit
+  flex-grow: 1;
   flex-shrink: 0;
+  flex-basis: auto;
 
   > div {
     width: 100%;
@@ -116,7 +118,8 @@ $x-label-height: 25px;
 .black-axis-end {
   background-color: black;
   width: $y-label-width;
-  height: $x-label-height;
+  // This and body with black background are used to always fill to the bottom
+  height: $x-label-height - 1;
 }
 
 $y-label-font-size: 20px;
