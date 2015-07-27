@@ -8,6 +8,7 @@ import Html.Lazy as Html
 import Window
 import Graphics.Collage
 import Debug
+import Task exposing (Task, andThen)
 
 import Components.Misc exposing (..)
 import Components.SongSelecter as SongSelecter
@@ -16,6 +17,8 @@ import Components.ViewSelecter as ViewSelecter
 import Components.YLabels as YLabels
 import Components.XLabel as XLabel
 import HtmlEvents exposing (disableContextMenu)
+
+import ParseFiles
 
 type Action
   = NoOp
@@ -101,10 +104,15 @@ view address model (w, h) =
      ]
 
 main : Signal Html
-main = Signal.map2 (view actions.address) model Window.dimensions
+main = Signal.map2 (view actions.address) (Signal.dropRepeats model) Window.dimensions
 
 model : Signal Model
 model = Signal.foldp update init actions.signal
 
 actions : Signal.Mailbox Action
 actions = Signal.mailbox NoOp
+
+port sheetFiles : Signal (Task String ())
+port sheetFiles =
+  Signal.map (\t -> t `andThen` ParseFiles.sheet `andThen` ParseFiles.print)
+   (Signal.dropRepeats (Signal.map (\m -> m.songSelecter.sheetFile) model))
