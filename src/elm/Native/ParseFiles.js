@@ -10,6 +10,7 @@ window.Elm.Native.ParseFiles.make = function(localRuntime) {
   var Task = Elm.Native.Task.make(localRuntime);
   var List = Elm.Native.List.make(localRuntime);
   var Utils = Elm.Native.Utils.make(localRuntime);
+  var Maybe = Elm.Maybe.make(localRuntime);
 
   function sheet(file) {
     return Task.asyncFunction(function(callback) {
@@ -61,7 +62,7 @@ window.Elm.Native.ParseFiles.make = function(localRuntime) {
       function parse_note(note, notes) {
         var duration = parseFloat(first_child_with_tag(note, "duration").textContent);
         if(first_child_with_tag(note, "rest")) {
-          notes.push({pitch: null, duration: duration});
+          notes.push({pitch: Maybe.Nothing, duration: duration});
         } else {
           var p = first_child_with_tag(note, "pitch");
           var name = first_child_with_tag(p, "step").textContent;
@@ -70,7 +71,7 @@ window.Elm.Native.ParseFiles.make = function(localRuntime) {
           var alter = first_child_with_tag(note, "alter");
           if(alter)
             pitch += parseInt(alter.textContent);
-          notes.push({pitch: pitch, duration: duration});
+          notes.push({pitch: Maybe.Just(pitch), duration: duration});
         }
       }
 

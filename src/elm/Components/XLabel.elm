@@ -13,6 +13,9 @@ import Html
 import Html.Attributes as Html
 import Html.Events as Html
 
+import ParseFiles
+import Components.Plots.PianoRoll
+
 type alias Model = NL.Model
 
 init : Model
@@ -39,8 +42,8 @@ line = segment (0, topMostPosition) (0, topMostPosition - lineLength)
 view' : NL.ViewType
 view' = NL.viewOneDim line fst moveX
 
-view : Signal.Address Action -> Model -> YLs.Model -> VSel.Model -> (Int, Int) -> Html.Html
-view address model ylsModel vSelModel (width, height) =
+view : Signal.Address Action -> Model -> YLs.Model -> VSel.Model -> (Int, Int) -> ParseFiles.Sheet -> Html.Html
+view address model ylsModel vSelModel (width, height) sheet =
   let
     width' = toFloat width
     height' = toFloat height
@@ -50,13 +53,13 @@ view address model ylsModel vSelModel (width, height) =
     panels =
       let
         c1 = if vSelModel.pitch then [
-               NL.view
+               NL.view (Components.Plots.PianoRoll.plot sheet)
                  model.center model.unitWidth
                  -ylsModel.pitch.centerA3Offset ylsModel.pitch.semitoneHeight
                  width' componentH
              ] else []
         c2 = if vSelModel.energy then [
-               NL.view
+               NL.view (\_ _ _ _ _ _ -> [])
                  model.center model.unitWidth
                  ylsModel.energy.center ylsModel.energy.unitWidth
                  width' componentH

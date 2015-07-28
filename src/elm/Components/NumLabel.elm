@@ -8,6 +8,7 @@ module Components.NumLabel
   , ViewType
   , backgroundColor
   , foregroundColor
+  , PlotFun
   ) where
 
 {- This component shows a numeric scale in either the X or the Y axis
@@ -129,8 +130,12 @@ viewOneDim line tfun move' address model (width, height) =
      ]
      [ Html.fromElement <| collage width' height' (r::lines') ]
 
-view : Float -> Float -> Float -> Float -> Float -> Float -> Html.Html
-view centerX widthX centerY widthY width height =
+
+type alias PlotFun =
+  Float -> Float -> Float -> Float -> Float -> Float -> List Form
+
+view : PlotFun -> Float -> Float -> Float -> Float -> Float -> Float -> Html.Html
+view plotFun centerX widthX centerY widthY width height =
   let
     width' = round width
     height' = round height
@@ -141,8 +146,10 @@ view centerX widthX centerY widthY width height =
     drawFun p _ = traced { defaultLine | color <- foregroundColor } p
     linesX = lines width widthX centerX moveX lineX drawFun
     linesY = lines height widthY centerY moveY lineY drawFun
+    plot = plotFun centerX widthX centerY widthY width height
   in
     Html.div
      [ Html.style <| whStyle width height
      ]
-     [ Html.fromElement <| collage width' height' (r::(linesX ++ linesY)) ]
+     [ Html.fromElement <|
+         collage width' height' (r::(linesX ++ linesY) ++ plot) ]

@@ -15,10 +15,15 @@ type alias Sheet = List ({pitch : Maybe Int, duration : Float})
 sheet : File -> Task String Sheet
 sheet = Native.ParseFiles.sheet
 
+
 print : a -> Task String ()
 print = Native.ParseFiles.print
 
-type alias Descriptors = {pitch : List Float, energy : List Float}
+
+type alias Descriptors =
+  { pitch : List Float
+  , energy : List Float
+  }
 
 descriptors : URL -> Task String Descriptors
 descriptors _ = Task.fail "Not implemented"

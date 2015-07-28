@@ -65,12 +65,12 @@ update a m =
                      <- YLabels.update s m.yLabels }
     XLabel s -> { m | xLabel
                     <- XLabel.update s m.xLabel }
-    Fullscreen b -> { m | fullscreen <- Debug.log "b" b }
+    Fullscreen b -> { m | fullscreen <- b }
     _ -> m
 
 
-view : Signal.Address Action -> Model -> (Int, Int) -> Html
-view address model (w, h) =
+view : Signal.Address Action -> Model -> (Int, Int) -> ParseFiles.Sheet -> Html
+view address model (w, h) sheet =
   let
     yLabels = Html.lazy3 (YLabels.view (Signal.forwardTo address YLabels))
                    model.yLabels model.viewSelecter (YLabels.labelWidth, h)
@@ -83,8 +83,8 @@ view address model (w, h) =
     div
      [ class "fullscreen"
      , disableContextMenu ]
-     [ Html.lazy3 (XLabel.view (Signal.forwardTo address XLabel) model.xLabel)
-         model.yLabels model.viewSelecter (w-YLabels.labelWidth, h)
+     [ XLabel.view (Signal.forwardTo address XLabel) model.xLabel
+         model.yLabels model.viewSelecter (w-YLabels.labelWidth, h) sheet
      , div
         [ classList
            [ ("controls", True)
@@ -115,7 +115,7 @@ view address model (w, h) =
      ]
 
 main : Signal Html
-main = Signal.map2 (view actions.address) (Signal.dropRepeats model) Window.dimensions
+main = Signal.map3 (view actions.address) (Signal.dropRepeats model) Window.dimensions sheet.signal
 
 model : Signal Model
 model = Signal.foldp update init actions.signal
@@ -128,7 +128,10 @@ port fullscreen : Signal Bool
 port sendFullscreen : Signal (Task x ())
 port sendFullscreen = Signal.send actions.address <~ Signal.map Fullscreen fullscreen
 
+sheet : Signal.Mailbox ParseFiles.Sheet
+sheet = Signal.mailbox []
+
 port sheetFiles : Signal (Task String ())
 port sheetFiles =
-  Signal.map (\t -> t `andThen` ParseFiles.sheet `andThen` ParseFiles.print)
+  Signal.map (\t -> t `andThen` ParseFiles.sheet `andThen` Signal.send sheet.address)
    (Signal.dropRepeats (Signal.map (\m -> m.songSelecter.sheetFile) model))
