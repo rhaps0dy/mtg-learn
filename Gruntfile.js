@@ -34,6 +34,10 @@ module.exports = function(grunt) {
         files: ['src/data/**'],
         tasks: ['copy:data']
       },
+      emscripten: {
+        files: ['src/cpp/*.js'],
+        tasks: ['copy:emscripten']
+      },
     },
 
     connect: {
@@ -75,6 +79,12 @@ module.exports = function(grunt) {
         expand: true,
         cwd: 'src',
         src: 'data/**',
+        dest: 'dist/'
+      },
+      emscripten: {
+        expand: true,
+        cwd: 'src/cpp',
+        src: ['*.js', '*.js.mem'],
         dest: 'dist/'
       },
     },
