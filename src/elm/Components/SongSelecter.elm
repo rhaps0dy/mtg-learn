@@ -1,4 +1,4 @@
-module Components.SongSelecter (Model, init, Action, update, view) where
+module Components.SongSelecter (Model, init, Action(LoadingStatus), update, view) where
 
 import Html as Html exposing (..)
 import Html.Attributes as Attr exposing (..)
@@ -12,21 +12,21 @@ import HtmlEvents exposing (..)
 import Components.Misc exposing (..)
 
 type alias Model =
-  { working : Bool
+  { loading : Bool
   , audioFile : Task.Task String URL
   , sheetFile : Task.Task String File
   }
 
 init : Model
 init =
-  { working = False
+  { loading = True
   , audioFile = Task.fail "No audio file"
   , sheetFile = Task.fail "No sheet file"
   }
 
 type Action
   = NoOp
-  | WorkingStatus Bool
+  | LoadingStatus Bool
   | ChangeSongSelect String
   | ChangeAudio File
   | ChangeSheet File
@@ -34,7 +34,7 @@ type Action
 update : Action -> Model -> Model
 update a m =
   case a of
-    WorkingStatus s -> { m | working <- s }
+    LoadingStatus s -> { m | loading <- s }
     ChangeSongSelect s ->
       case String.toInt s of
         Ok -1 -> m
@@ -55,10 +55,10 @@ update a m =
 view : Signal.Address Action -> Model -> Html
 view address model =
   controlPanel <|
-    if model.working then
+    if model.loading then
       [ div [ class "text-centerer" ]
-         [ p [] [ text "Working..." ]
-         , Html.img [ src "images/working.gif" ] []
+         [ p [] [ text "Loading..." ]
+         , Html.img [ src "images/loading.gif" ] []
          ]
       ]
     else

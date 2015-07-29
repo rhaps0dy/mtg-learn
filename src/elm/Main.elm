@@ -29,6 +29,7 @@ type Action
   | YLabels YLabels.Action
   | XLabel XLabel.Action
   | Fullscreen Bool
+  | AudioAnalysisLoaded Bool
 
 type alias Model =
   { trayClosed : Bool
@@ -115,18 +116,24 @@ view address model (w, h) sheet =
      ]
 
 main : Signal Html
-main = Signal.map3 (view actions.address) (Signal.dropRepeats model) Window.dimensions sheet.signal
+main = Signal.map3 (view actions.address) (Signal.dropRepeats model)
+         Window.dimensions sheet.signal
 
 model : Signal Model
-model = Signal.foldp update init actions.signal
+model = Signal.foldp update init (Signal.mergeMany
+                                  [ actions.signal
+                                  , Fullscreen <~ fullscreen
+                                  , (SongSelecter <<
+                                     SongSelecter.LoadingStatus) <~
+                                       audioAnalysisLoading
+                                  ])
 
 actions : Signal.Mailbox Action
 actions = Signal.mailbox NoOp
 
 port fullscreen : Signal Bool
 
-port sendFullscreen : Signal (Task x ())
-port sendFullscreen = Signal.send actions.address <~ Signal.map Fullscreen fullscreen
+port audioAnalysisLoading : Signal Bool
 
 sheet : Signal.Mailbox ParseFiles.Sheet
 sheet = Signal.mailbox []
@@ -135,3 +142,7 @@ port sheetFiles : Signal (Task String ())
 port sheetFiles =
   Signal.map (\t -> t `andThen` ParseFiles.sheet `andThen` Signal.send sheet.address)
    (Signal.dropRepeats (Signal.map (\m -> m.songSelecter.sheetFile) model))
+
+
+port sendFullscreen : Signal (Task x ())
+port sendFullscreen = Signal.send actions.address <~ Signal.map Fullscreen fullscreen

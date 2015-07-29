@@ -1,5 +1,9 @@
-var elm_app = Elm.fullscreen(Elm.Main, {fullscreen: false});
+var elm_app = Elm.fullscreen(Elm.Main, { fullscreen: false
+                                       , audioAnalysisLoading: true
+                                       });
 
+// defines a function that toggles fullscreen and signals the fullscreen state
+// to the Elm runtime
 (function(window, document, elm_app) {
     window.goFullscreen = function(state) {
         var i = document.body;
@@ -49,3 +53,13 @@ var elm_app = Elm.fullscreen(Elm.Main, {fullscreen: false});
         console.warn("No fullscreen support!");
     }
 })(window, document, elm_app);
+
+// Loads the audio analysis runtime and signals its completion to the Elm runtime
+(function(document, elm_app) {
+    var script = document.createElement('script');
+    script.src = "/audio_analysis.js";
+    script.addEventListener('load', function() {
+        elm_app.ports.audioAnalysisLoading.send(false);
+    }, false);
+    document.body.appendChild(script);
+})(document, elm_app);
