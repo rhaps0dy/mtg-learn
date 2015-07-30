@@ -119,55 +119,50 @@ window.Elm.Native.ParseFiles.make = function(localRuntime) {
             localRuntime.Native.ParseFiles.audioContext || new window.AudioContext());
   }
 
-  function fileToAudio(file) {
+  function decodeAudioFile(file) {
     return Task.asyncFunction(function(callback) {
       var ctx = getDefaultContext();
-      var src = ctx.createBufferSource();
       var fr = new FileReader();
       fr.onloadend = function() {
         ctx.decodeAudioData(fr.result, function(decodedData) {
-          src.buffer = decodedData;
-          callback(Task.succeed(src));
+          var array = decodedData.getChannelData(0);
+          callback(Task.succeed(array));
         });
       };
       fr.readAsArrayBuffer(file);
     });
   }
 
-  function descriptors(source) {
+  function descriptors(buffer) {
+    var BUF_LEN = 4096;
     return Task.asyncFunction(function(callback) {
-      var ctx = getDefaultContext();
-      var scriptNode = ctx.createScriptProcessor(4096, 1, 1);
-      source.connect(scriptNode);
       var Module = window.Module;
       var in_buf_idx = Module._in_buf_address() / 4;
       var out_buf_idx = Module._out_buf_address() / 4;
       var confidence_idx = Module._confidence_address() / 4;
 
       var pitches = [];
-      scriptNode.onaudioprocess = function(event) {
-        var inputData = event.inputBuffer.getChannelData(0);
-        Module.HEAPF32.set(inputData, in_buf_idx);
+      for(var i=0; i<buffer.length; i+=BUF_LEN) {
+        console.log(i);
+        console.log(buffer.length);
+        Module.HEAPF32.set(buffer.slice(i, i+BUF_LEN), in_buf_idx);
         Module._process()
         if(Module.HEAPF32[confidence_idx] < 0.85)
-          pitches.push(null);
+          pitches.push(Maybe.Nothing);
         else
-          pitches.push(Module.HEAPF32[out_buf_idx]);
-      };
-      source.onended = function() {
-        callback(Task.succeed(
-          { pitch: List.fromArray(pitches)
-          , energy: List.fromArray([])
-          }));
+          pitches.push(Maybe.Just(Module.HEAPF32[out_buf_idx]));
       }
-      source.start(0);
+      callback(Task.succeed(
+        { pitch: List.fromArray(pitches)
+        , energy: List.fromArray([])
+        }));
     });
   }
 
   return localRuntime.Native.File.values =
     { sheet: sheet
     , print: print
-    , fileToAudio: fileToAudio
+    , decodeAudioFile: decodeAudioFile
     , descriptors: descriptors
     };
 };

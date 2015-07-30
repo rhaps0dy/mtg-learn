@@ -4,8 +4,8 @@ module ParseFiles
   , Descriptors
   , descriptors
   , print
-  , Audio
-  , fileToAudio
+  , DecodedAudioBuffer
+  , decodeAudioFile
   ) where
 
 import File exposing (..)
@@ -23,13 +23,13 @@ type alias Descriptors =
   , energy : List Float
   }
 
-descriptors : Audio -> Task String Descriptors
+descriptors : DecodedAudioBuffer -> Task String Descriptors
 descriptors = Native.ParseFiles.descriptors
 
 print : a -> Task String ()
 print = Native.ParseFiles.print
 
-type Audio = Audio
+type DecodedAudioBuffer = DecodedAudioBuffer
 
-fileToAudio : File -> Task String Audio
-fileToAudio = Native.ParseFiles.fileToAudio
+decodeAudioFile : File -> Task String DecodedAudioBuffer
+decodeAudioFile = Native.ParseFiles.decodeAudioFile

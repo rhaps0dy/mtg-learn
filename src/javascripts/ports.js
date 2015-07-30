@@ -59,9 +59,16 @@ var elm_app = Elm.fullscreen(Elm.Main,
 (function(document, elm_app) {
   var script = document.createElement('script');
   script.src = "/audio_analysis.js";
-  script.onload = function() {
-    elm_app.ports.audioAnalysisLoading.send(false);
-    window.Module._init();
+  // Try to run main in intervals of 50ms
+  // There is no event for after main has ran and we can use the Emscripten
+  // runtime
+  script.onload = function initEssentia() {
+    try {
+      window.Module._init();
+      elm_app.ports.audioAnalysisLoading.send(false);
+    } catch(err) {
+      setTimeout(initEssentia, 50);
+    }
   };
   document.body.appendChild(script);
 })(document, elm_app);

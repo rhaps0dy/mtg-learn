@@ -145,7 +145,7 @@ port sheetFiles =
 
 port descriptorsFiles : Signal (Task String ())
 port descriptorsFiles =
-  Signal.map (\t -> t `andThen` ParseFiles.fileToAudio
+  Signal.map (\t -> t `andThen` ParseFiles.decodeAudioFile
              `andThen` ParseFiles.descriptors
              `andThen` ParseFiles.print)
    (Signal.dropRepeats (Signal.map (\m -> m.songSelecter.audioFile) model))
