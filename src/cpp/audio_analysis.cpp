@@ -37,8 +37,9 @@ extern "C" {
     void process() {
         network->runStep();
     }
-    void init() {
+    int main() {
         init_cpp();
+        return 0;
     }
     void quit() {
         essentia::shutdown();
@@ -145,11 +146,4 @@ void init_cpp()
 
     network = new Network(inp);
     network->runPrepare();
-}
-
-int main() {
-    init_cpp();
-    for(int i=0; i<12; i++)
-        network->runStep();
-    return 0;
 }

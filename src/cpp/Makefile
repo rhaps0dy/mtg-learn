@@ -6,8 +6,10 @@ all: audio_analysis.js
 
 audio_analysis.js: audio_analysis.bc
 	emcc -Oz audio_analysis.bc ${LIB_DIR}/libessentia.a ${LIB_DIR}/libfftw3f.a \
-		 -s EXPORTED_FUNCTIONS="['_in_buf_address', '_out_buf_address', '_confidence_address', '_process', '_init', '_quit']" \
-		 -s DISABLE_EXCEPTION_CATCHING=0 \
+		 -s EXPORTED_FUNCTIONS="['_in_buf_address', '_out_buf_address', '_confidence_address', '_process', '_quit']" \
+		 -s DISABLE_EXCEPTION_CATCHING=1 \
+		 -s ASSERTIONS=1 \
+		 -s NO_EXIT_RUNTIME=1 \
 		 -o audio_analysis.js
 
 audio_analysis.bc: audio_analysis.cpp

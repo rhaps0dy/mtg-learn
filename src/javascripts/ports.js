@@ -61,7 +61,6 @@ var elm_app = Elm.fullscreen(Elm.Main,
   script.src = "/audio_analysis.js";
   script.onload = function() {
     elm_app.ports.audioAnalysisLoading.send(false);
-    window.Module._init();
   };
   document.body.appendChild(script);
 })(document, elm_app);
