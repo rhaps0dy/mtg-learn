@@ -14,7 +14,7 @@ import Html.Attributes as Html
 import Html.Events as Events exposing (onClick, on, targetValue, targetChecked)
 import Json.Decode as Decode exposing ((:=), string, Decoder, int, object2)
 import Signal
-import Components.Misc exposing (File)
+import File exposing (File)
 
 import Native.File
 

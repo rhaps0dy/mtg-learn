@@ -1,11 +1,6 @@
 module Components.Misc
  ( controlPanel
  , labeledCheckbox
- , File
- , URL(..)
- , fileToURL
- , urlToFile
- , freeURL
  , whStyle
  ) where
                       
@@ -17,7 +12,6 @@ import Json.Decode exposing ((:=), string, Decoder, int, object2)
 import Signal
 import Task
 
-import Native.File
 
 controlPanel : List Html -> Html
 controlPanel l =
@@ -37,19 +31,6 @@ labeledCheckbox id' l address fun isChecked =
       , text l
       ]
    ]
-
-type File = File
-
-type URL = URL String
-
-fileToURL : File -> URL
-fileToURL f = URL (Native.File.fileToURL f)
-
-urlToFile : URL -> Task.Task String File
-urlToFile (URL s) = Native.File.URLToFile s
-
-freeURL : URL -> Task.Task String ()
-freeURL (URL s) = Native.File.freeURL s
 
 whStyle : a -> a -> List (String, String)
 whStyle w h = [("width", toString w ++ "px"), ("height", toString h ++ "px")]

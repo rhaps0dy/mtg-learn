@@ -1,6 +1,6 @@
 Elm.Native.ParseFiles = {};
 
-(function(window) {
+(function(window, document) {
 window.Elm.Native.ParseFiles.make = function(localRuntime) {
   localRuntime.Native = localRuntime.Native || {};
   localRuntime.Native.ParseFiles = localRuntime.Native.ParseFiles || {};
@@ -114,9 +114,61 @@ window.Elm.Native.ParseFiles.make = function(localRuntime) {
     });
   }
 
+  function getDefaultContext() {
+    return (localRuntime.Native.ParseFiles.audioContext =
+            localRuntime.Native.ParseFiles.audioContext || new window.AudioContext());
+  }
+
+  function fileToAudio(file) {
+    return Task.asyncFunction(function(callback) {
+      var ctx = getDefaultContext();
+      var src = ctx.createBufferSource();
+      var fr = new FileReader();
+      fr.onloadend = function() {
+        ctx.decodeAudioData(fr.result, function(decodedData) {
+          src.buffer = decodedData;
+          callback(Task.succeed(src));
+        });
+      };
+      fr.readAsArrayBuffer(file);
+    });
+  }
+
+  function descriptors(source) {
+    return Task.asyncFunction(function(callback) {
+      var ctx = getDefaultContext();
+      var scriptNode = ctx.createScriptProcessor(4096, 1, 1);
+      source.connect(scriptNode);
+      var Module = window.Module;
+      var in_buf_idx = Module._in_buf_address() / 4;
+      var out_buf_idx = Module._out_buf_address() / 4;
+      var confidence_idx = Module._confidence_address() / 4;
+
+      var pitches = [];
+      scriptNode.onaudioprocess = function(event) {
+        var inputData = event.inputBuffer.getChannelData(0);
+        Module.HEAPF32.set(inputData, in_buf_idx);
+        Module._process()
+        if(Module.HEAPF32[confidence_idx] < 0.85)
+          pitches.push(null);
+        else
+          pitches.push(Module.HEAPF32[out_buf_idx]);
+      };
+      source.onended = function() {
+        callback(Task.succeed(
+          { pitch: List.fromArray(pitches)
+          , energy: List.fromArray([])
+          }));
+      }
+      source.start(0);
+    });
+  }
+
   return localRuntime.Native.File.values =
     { sheet: sheet
     , print: print
+    , fileToAudio: fileToAudio
+    , descriptors: descriptors
     };
 };
-})(window);
+})(window, document);

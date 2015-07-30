@@ -10,10 +10,11 @@ import String
 
 import HtmlEvents exposing (..)
 import Components.Misc exposing (..)
+import File exposing (File, urlToFile, URL(URL))
 
 type alias Model =
   { loading : Bool
-  , audioFile : Task.Task String URL
+  , audioFile : Task.Task String File
   , sheetFile : Task.Task String File
   }
 
@@ -40,7 +41,7 @@ update a m =
         Ok -1 -> m
         Ok i -> 
           case Array.get i songs of
-            Just (u1, u2) -> { m | audioFile <- Task.succeed u1
+            Just (u1, u2) -> { m | audioFile <- urlToFile u1
                           , sheetFile <- urlToFile u2 }
             Nothing ->
               let failed = Task.fail "Index out of bounds"
@@ -48,7 +49,7 @@ update a m =
         Err e ->
           { m | audioFile <- Task.fail e, sheetFile <- Task.fail e }
 
-    ChangeAudio f -> { m | audioFile <- Task.succeed (fileToURL f) }
+    ChangeAudio f -> { m | audioFile <- Task.succeed f }
     ChangeSheet f -> { m | sheetFile <- Task.succeed f }
     _ -> m
 

@@ -42,17 +42,8 @@ Elm.Native.File.make = function(localRuntime) {
         });
     }
 
-    function freeURL(url) {
-        return Task.asyncFunction(function(callback) {
-            URL.revokeObjectURL(url);
-            callback(Task.succeed())
-        });
-    }
-
     return localRuntime.Native.File.values =
       { fileListDecoder: fileListDecoder
-      , fileToURL: URL.createObjectURL
       , URLToFile: URLToFile
-      , freeURL: freeURL
       };
 };

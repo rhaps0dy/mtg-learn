@@ -143,6 +143,13 @@ port sheetFiles =
   Signal.map (\t -> t `andThen` ParseFiles.sheet `andThen` Signal.send sheet.address)
    (Signal.dropRepeats (Signal.map (\m -> m.songSelecter.sheetFile) model))
 
+port descriptorsFiles : Signal (Task String ())
+port descriptorsFiles =
+  Signal.map (\t -> t `andThen` ParseFiles.fileToAudio
+             `andThen` ParseFiles.descriptors
+             `andThen` ParseFiles.print)
+   (Signal.dropRepeats (Signal.map (\m -> m.songSelecter.audioFile) model))
+
 
 port sendFullscreen : Signal (Task x ())
 port sendFullscreen = Signal.send actions.address <~ Signal.map Fullscreen fullscreen
