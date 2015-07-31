@@ -9,6 +9,7 @@ module Components.NumLabel
   , backgroundColor
   , foregroundColor
   , PlotFun
+  , firstLastIndices
   ) where
 
 {- This component shows a numeric scale in either the X or the Y axis
@@ -95,13 +96,20 @@ drawLine line num =
 type alias ViewType =
   Signal.Address Action -> Model -> (Float, Float) -> Html.Html
 
+firstLastIndices : Float -> Float -> Float -> (Int, Int)
+firstLastIndices width unitWidth center =
+ let
+   nLinesHalfWidth = (width / 2) / unitWidth
+   firstLine = floor <| -center - nLinesHalfWidth
+   lastLine = ceiling <| -center + nLinesHalfWidth
+ in
+   (firstLine, lastLine)
+
 lines : Float -> Float -> Float -> (Float -> Form -> Form) -> Path
       -> (Path -> Int -> Form) -> List Form
 lines length unitWidth center move' line drawFun =
   let
-    nLinesHalfWidth = (length / 2) / unitWidth
-    firstLine = floor <| -center - nLinesHalfWidth
-    lastLine = ceiling <| -center + nLinesHalfWidth
+    (firstLine, lastLine) = firstLastIndices length unitWidth center
     drawMove x = 
       drawFun line x
        |> move' ((center + toFloat x) * unitWidth)

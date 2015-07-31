@@ -2,6 +2,7 @@ module ParseFiles
   ( Sheet
   , sheet
   , Descriptors
+  , Buffer
   , descriptors
   , print
   , DecodedAudioBuffer
@@ -18,9 +19,11 @@ type alias Sheet = List ({pitch : Maybe Int, duration : Float})
 sheet : File -> Task String Sheet
 sheet = Native.ParseFiles.sheet
 
+type Buffer = Buffer
+
 type alias Descriptors =
-  { pitch : List Float
-  , energy : List Float
+  { pitch : Buffer
+  , energy : Buffer
   }
 
 descriptors : DecodedAudioBuffer -> Task String Descriptors

@@ -1,12 +1,13 @@
 module Main (main) where
 
-import Signal exposing ((<~))
+import Signal exposing ((<~), (~))
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import Html.Lazy as Html
 import Window
 import Graphics.Collage
+import Color
 import Debug
 import Task exposing (Task, andThen)
 
@@ -19,6 +20,7 @@ import Components.XLabel as XLabel
 import HtmlEvents exposing (disableContextMenu)
 
 import ParseFiles
+import PlotLine
 
 type Action
   = NoOp
@@ -143,12 +145,23 @@ port sheetFiles =
   Signal.map (\t -> t `andThen` ParseFiles.sheet `andThen` Signal.send sheet.address)
    (Signal.dropRepeats (Signal.map (\m -> m.songSelecter.sheetFile) model))
 
+plotPitchAnalysis : ParseFiles.Buffer -> Float -> Float -> Float -> Float
+                                      -> Int -> Int -> Task x ()
+plotPitchAnalysis = PlotLine.plotBuffer Color.blue "pitch-canvas" 
+ 
 port descriptorsFiles : Signal (Task String ())
 port descriptorsFiles =
-  Signal.map (\t -> t `andThen` ParseFiles.decodeAudioFile
-             `andThen` ParseFiles.descriptors
-             `andThen` ParseFiles.print)
-   (Signal.dropRepeats (Signal.map (\m -> m.songSelecter.audioFile) model))
+  (\t cx cy uwx uwy (w,h) -> t `andThen`
+   ParseFiles.decodeAudioFile `andThen`
+   ParseFiles.descriptors `andThen`
+--   ParseFiles.print
+   (\d -> plotPitchAnalysis d.pitch cx cy uwx uwy w h)
+  ) <~ Signal.dropRepeats ((\m -> m.songSelecter.audioFile) <~ model) ~
+       Signal.dropRepeats ((\m -> m.xLabel.center) <~ model) ~
+       Signal.dropRepeats ((\m -> -m.yLabels.pitch.centerA3Offset) <~ model) ~
+       Signal.dropRepeats ((\m -> m.xLabel.unitWidth) <~ model) ~
+       Signal.dropRepeats ((\m -> -m.yLabels.pitch.semitoneHeight) <~ model) ~
+       Window.dimensions
 
 
 port sendFullscreen : Signal (Task x ())

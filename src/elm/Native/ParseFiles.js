@@ -133,6 +133,11 @@ window.Elm.Native.ParseFiles.make = function(localRuntime) {
     });
   }
 
+  var logTwelvethRootTwo = Math.log(1.05946309435930);
+  function freqToPitch(freq) {
+    return Math.log(freq/440) / logTwelvethRootTwo;
+  }
+
   function descriptors(buffer) {
     var BUF_LEN = 4096;
     return Task.asyncFunction(function(callback) {
@@ -143,23 +148,21 @@ window.Elm.Native.ParseFiles.make = function(localRuntime) {
 
       var pitches = [];
       for(var i=0; i<buffer.length; i+=BUF_LEN) {
-        console.log(i);
-        console.log(buffer.length);
         Module.HEAPF32.set(buffer.slice(i, i+BUF_LEN), in_buf_idx);
         Module._process()
-        if(Module.HEAPF32[confidence_idx] < 0.85)
-          pitches.push(Maybe.Nothing);
+        if(Module.HEAPF32[confidence_idx] < 0.8)
+          pitches.push(null);
         else
-          pitches.push(Maybe.Just(Module.HEAPF32[out_buf_idx]));
+          pitches.push(freqToPitch(Module.HEAPF32[out_buf_idx]));
       }
       callback(Task.succeed(
-        { pitch: List.fromArray(pitches)
-        , energy: List.fromArray([])
+        { pitch: pitches
+        , energy: []
         }));
     });
   }
 
-  return localRuntime.Native.File.values =
+  return localRuntime.Native.ParseFiles.values =
     { sheet: sheet
     , print: print
     , decodeAudioFile: decodeAudioFile

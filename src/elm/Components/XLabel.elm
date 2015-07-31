@@ -57,6 +57,13 @@ view address model ylsModel vSelModel (width, height) sheet =
                  model.center model.unitWidth
                  -ylsModel.pitch.centerA3Offset ylsModel.pitch.semitoneHeight
                  width' componentH
+             , Html.canvas
+                [ Html.id "pitch-canvas"
+                , Html.style <|
+                   ("margin-top", toString (-componentH) ++ "px")::
+                   ("position", "absolute")::
+                   (whStyle width' componentH)
+                ] []
              ] else []
         c2 = if vSelModel.energy then [
                NL.view (\_ _ _ _ _ _ -> [])
