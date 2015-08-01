@@ -5,6 +5,7 @@ module Components.XLabel (Model, init, Action, update, view) where
 
 import Components.NumLabel as NL
 import Components.YLabels as YLs
+import Components.YLabels.Pitch exposing (viewNoNums)
 import Components.ViewSelecter as VSel
 import Graphics.Collage exposing (segment, Path, moveX)
 import HtmlEvents exposing (..)
@@ -53,10 +54,7 @@ view address model ylsModel vSelModel (width, height) sheet =
     panels =
       let
         c1 = if vSelModel.pitch then [
-               NL.view (Components.Plots.PianoRoll.plot sheet)
-                 model.center model.unitWidth
-                 -ylsModel.pitch.centerA3Offset ylsModel.pitch.semitoneHeight
-                 width' componentH
+               viewNoNums ylsModel.pitch width' componentH
              , Html.canvas
                 [ Html.id "pitch-canvas"
                 , Html.style <|

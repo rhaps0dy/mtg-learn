@@ -179,7 +179,9 @@ port drawDescriptors =
       Signal.dropRepeats ((\m -> -m.yLabels.pitch.centerA3Offset) <~ model) ~
       Signal.dropRepeats ((\m -> m.xLabel.unitWidth) <~ model) ~
       Signal.dropRepeats ((\m -> m.yLabels.pitch.semitoneHeight) <~ model) ~
+-- This should be width and componentH in XLabel
       Window.dimensions
+
 
 
 port sendFullscreen : Signal (Task x ())

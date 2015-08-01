@@ -1,4 +1,11 @@
-module Components.YLabels.Pitch (Model, init, Action, update, view) where
+module Components.YLabels.Pitch
+  ( Model
+  , init
+  , Action
+  , update
+  , view
+  , viewNoNums
+  ) where
 
 {- Component that shows the pitch label -}
 
@@ -102,9 +109,11 @@ a3OffsetToColors i =
   in
     (c, if c == white then black else white)
 
+type alias NoteRectangleFun =
+  Float -> Float -> Float -> Int -> Form
 
-noteRectangle : Float -> Float -> Float -> Int -> Form
-noteRectangle width height margin a3Offset =
+noteRectangle' : Bool -> NoteRectangleFun
+noteRectangle' showNames width height margin a3Offset =
   let
     (c1, c2) = a3OffsetToColors a3Offset
     rectangle = rect width height
@@ -114,12 +123,15 @@ noteRectangle width height margin a3Offset =
              |> Text.color c2
              |> text
   in
-    group [rectangle, text']
+    (if showNames then group [rectangle, text'] else rectangle)
      |> moveY (margin + height * toFloat a3Offset)
 
 
-view : Signal.Address Action -> Model -> Float -> Float -> Html.Html
-view address {centerA3Offset, semitoneHeight} width height =
+type alias ViewFun =
+  Signal.Address Action -> Model -> Float -> Float -> Html.Html
+
+view' : NoteRectangleFun -> ViewFun
+view' noteRectangle address {centerA3Offset, semitoneHeight} width height =
   let
     -- We want the pitches to be centered on their rectangles, not at the bottom
     offsetForGrid = centerA3Offset + 0.5
@@ -138,3 +150,12 @@ view address {centerA3Offset, semitoneHeight} width height =
      , Html.onMouseOut address MouseUp
      ]
      [ Html.fromElement <| collage (round width) (round height) rectangles ]
+
+view : ViewFun
+view = view' (noteRectangle' True)
+
+dummy : Signal.Mailbox Action
+dummy = Signal.mailbox NoOp
+
+viewNoNums : Model -> Float -> Float -> Html.Html
+viewNoNums = view' (noteRectangle' False) dummy.address
