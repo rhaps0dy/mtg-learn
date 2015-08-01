@@ -1,4 +1,4 @@
-module Components.SongSelecter (Model, init, Action(LoadingStatus), update, view) where
+module Components.Tray.SongSelecter (Model, init, Action(LoadingStatus), update, view) where
 
 import Html as Html exposing (..)
 import Html.Attributes as Attr exposing (..)
@@ -9,7 +9,7 @@ import Array
 import String
 
 import HtmlEvents exposing (..)
-import Components.Misc exposing (..)
+import Components.Misc exposing (controlPanel)
 import File exposing (File, urlToFile, URL(URL))
 
 type alias Model =

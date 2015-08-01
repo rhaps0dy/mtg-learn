@@ -1,0 +1,29 @@
+/Main.elm
+This file sets the overall structure of the document and contains main. Also
+contains the big Model of the Elm standard architecture. It defines the ports
+for executing the Task.Tasks needed
+
+/Components/Tray.elm
+Tray in the left side. Also defines view for the buttons that are on its
+side. One manipulates whether the tray is open or closed. The other manipulates
+fullscreen for the application. This second button deviates a bit from what
+should be an Elm button as it manipulates the actual state of the world: it
+activates and deactivates fullscreen and needs a port defined somewhere else or
+it won't work. The reason for this is browsers blocking fullscreen requests
+outside of direct event callbacks from user-initiated events.
+
+/Components/Tray
+Components that go in the tray in the left side
+
+/Components/YLabels.elm
+
+/Components/GenericLabel.elm
+Functions and data structures common to all labels, such as the Actions and
+Models.
+
+/Components/Template.elm
+Not really part of the project, but has the boilerplate required to create a new
+Component.
+
+/Components/Misc.elm
+Miscellaneous component view functions to reuse in other components.

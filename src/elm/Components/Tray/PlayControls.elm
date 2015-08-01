@@ -1,4 +1,4 @@
-module Components.PlayControls (Model, init, Action, update, view) where
+module Components.Tray.PlayControls (Model, init, Action, update, view) where
 
 import Html as Html exposing (..)
 import Html.Attributes as Attr exposing (..)

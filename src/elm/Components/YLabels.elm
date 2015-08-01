@@ -20,7 +20,7 @@ import Color exposing (..)
 import Array exposing (Array)
 import Signal
 
-import Components.ViewSelecter as VSel
+import Components.Tray.ViewSelecter as VSel
 import Components.YLabels.Pitch as Pitch
 import Components.YLabels.Energy as Energy
 import Components.Misc exposing (whStyle)

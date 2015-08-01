@@ -11,10 +11,8 @@ import Color
 import Debug
 import Task exposing (Task, andThen)
 
-import Components.Misc exposing (..)
-import Components.SongSelecter as SongSelecter
-import Components.PlayControls as PlayControls
-import Components.ViewSelecter as ViewSelecter
+import Components.Tray as Tray
+import Components.Tray.SongSelecter as SongSelecter
 import Components.YLabels as YLabels
 import Components.XLabel as XLabel
 import HtmlEvents exposing (disableContextMenu)
@@ -24,96 +22,53 @@ import PlotLine
 
 type Action
   = NoOp
-  | ToggleTray
-  | SongSelecter SongSelecter.Action
-  | PlayControls PlayControls.Action
-  | ViewSelecter ViewSelecter.Action
   | YLabels YLabels.Action
   | XLabel XLabel.Action
-  | Fullscreen Bool
+  | Tray Tray.Action
   | AudioAnalysisLoaded Bool
 
 type alias Model =
-  { trayClosed : Bool
-  , fullscreen : Bool
-  , songSelecter : SongSelecter.Model
-  , playControls : PlayControls.Model
-  , viewSelecter : ViewSelecter.Model
-  , yLabels : YLabels.Model
+  { yLabels : YLabels.Model
   , xLabel : XLabel.Model
+  , tray : Tray.Model
   }
 
 init : Model
 init =
-  { trayClosed = False
-  , fullscreen = False
-  , songSelecter = SongSelecter.init
-  , playControls = PlayControls.init
-  , viewSelecter = ViewSelecter.init
-  , yLabels = YLabels.init
+  { yLabels = YLabels.init
   , xLabel = XLabel.init
+  , tray = Tray.init
   }
 
 update : Action -> Model -> Model
-update a m =
-  case a of
-    ToggleTray -> { m | trayClosed <- not m.trayClosed }
-    SongSelecter s -> { m | songSelecter
-                          <- SongSelecter.update s m.songSelecter }
-    PlayControls c -> { m | playControls
-                          <- PlayControls.update c m.playControls }
-    ViewSelecter s -> { m | viewSelecter
-                          <- ViewSelecter.update s m.viewSelecter }
-    YLabels s -> { m | yLabels
-                     <- YLabels.update s m.yLabels }
-    XLabel s -> { m | xLabel
-                    <- XLabel.update s m.xLabel }
-    Fullscreen b -> { m | fullscreen <- b }
-    _ -> m
+update action model =
+  case action of
+    YLabels a -> { model |
+                   yLabels <- YLabels.update a model.yLabels }
+    XLabel a -> { model |
+                  xLabel <- XLabel.update a model.xLabel }
+    Tray a -> { model |
+                tray <- Tray.update a model.tray }
+    _ -> model
+
 
 
 view : Signal.Address Action -> Model -> (Int, Int) -> ParseFiles.Sheet -> Html
 view address model (w, h) sheet =
   let
     yLabels = Html.lazy3 (YLabels.view (Signal.forwardTo address YLabels))
-                   model.yLabels model.viewSelecter (YLabels.labelWidth, h)
-    menuButton =
-      span
-       [ class "glyphicon glyphicon-menu-hamburger y-label-icon"
-       , onClick address ToggleTray
-       ] []
+                   model.yLabels model.tray.viewSelecter (YLabels.labelWidth, h)
   in
     div
      [ class "fullscreen"
      , disableContextMenu ]
      [ XLabel.view (Signal.forwardTo address XLabel) model.xLabel
-         model.yLabels model.viewSelecter (w-YLabels.labelWidth, h) sheet
-     , div
-        [ classList
-           [ ("controls", True)
-           , ("tray-closed", model.trayClosed)
-           ]
-        ]
-        [ Html.lazy2 SongSelecter.view (Signal.forwardTo address SongSelecter) model.songSelecter
-        , Html.lazy2 PlayControls.view (Signal.forwardTo address PlayControls) model.playControls
-        , Html.lazy2 ViewSelecter.view (Signal.forwardTo address ViewSelecter) model.viewSelecter
-        ]
+         model.yLabels model.tray.viewSelecter (w-YLabels.labelWidth, h) sheet
+     , Html.lazy2 Tray.view trayAddress model.tray
      , div [ class "y-label" ]
         [ yLabels
-        , menuButton
-        , span
-           [ class <| "glyphicon y-label-icon " ++
-               if model.fullscreen then
-                 "glyphicon-resize-small"
-               else
-                 "glyphicon-resize-full"
-           -- Function defined in ports.js, fullscreen has to come from user-generated
-           -- event.
-           , attribute "onclick" <| if model.fullscreen then
-                                      "goFullscreen(false);"
-                                    else
-                                      "goFullscreen(true);"
-           ] []
+        , Html.lazy2 Tray.viewToggleTrayButton trayAddress model.tray
+        , Html.lazy2 Tray.viewFullscreenButton trayAddress model.tray
         ]
      ]
 
@@ -124,8 +79,7 @@ main = Signal.map3 (view actions.address) (Signal.dropRepeats model)
 model : Signal Model
 model = Signal.foldp update init (Signal.mergeMany
                                   [ actions.signal
-                                  , Fullscreen <~ fullscreen
-                                  , (SongSelecter <<
+                                  , (Tray << Tray.SongSelecter <<
                                      SongSelecter.LoadingStatus) <~
                                        audioAnalysisLoading
                                   ])
@@ -133,7 +87,8 @@ model = Signal.foldp update init (Signal.mergeMany
 actions : Signal.Mailbox Action
 actions = Signal.mailbox NoOp
 
-port fullscreen : Signal Bool
+trayAddress : Signal.Address Tray.Action
+trayAddress = Signal.forwardTo actions.address Tray
 
 port audioAnalysisLoading : Signal Bool
 
@@ -143,7 +98,7 @@ sheet = Signal.mailbox []
 port sheetFiles : Signal (Task String ())
 port sheetFiles =
   Signal.map (\t -> t `andThen` ParseFiles.sheet `andThen` Signal.send sheet.address)
-   (Signal.dropRepeats (Signal.map (\m -> m.songSelecter.sheetFile) model))
+   (Signal.dropRepeats (Signal.map (\m -> m.tray.songSelecter.sheetFile) model))
 
 plotPitchAnalysis : ParseFiles.Buffer -> Float -> Float -> Float -> Float
                                       -> Int -> Int -> Task String ()
@@ -164,7 +119,7 @@ port descriptorsFiles =
    ParseFiles.decodeAudioFile `andThen`
    ParseFiles.descriptors `andThen`
    Signal.send descriptorMailbox.address) <~
-     Signal.dropRepeats ((\m -> m.songSelecter.audioFile) <~ model)
+     Signal.dropRepeats ((\m -> m.tray.songSelecter.audioFile) <~ model)
 
 port drawDescriptors : Signal (Task String ())
 port drawDescriptors =
@@ -174,7 +129,7 @@ port drawDescriptors =
    in
      plotPitchAnalysis d.pitch (cx * xFactor) cy (uwx / xFactor) uwy w h) <~
       descriptorMailbox.signal ~
-      Signal.dropRepeats ((\m -> toFloat m.playControls.bpm) <~ model) ~
+      Signal.dropRepeats ((\m -> toFloat m.tray.playControls.bpm) <~ model) ~
       Signal.dropRepeats ((\m -> m.xLabel.center) <~ model) ~
       Signal.dropRepeats ((\m -> -m.yLabels.pitch.centerA3Offset) <~ model) ~
       Signal.dropRepeats ((\m -> m.xLabel.unitWidth) <~ model) ~
@@ -182,7 +137,9 @@ port drawDescriptors =
 -- This should be width and componentH in XLabel
       Window.dimensions
 
-
+-- Necessary port plumbing for Tray.viewFullscreenButton
+port fullscreen : Signal Bool
 
 port sendFullscreen : Signal (Task x ())
-port sendFullscreen = Signal.send actions.address <~ Signal.map Fullscreen fullscreen
+port sendFullscreen =
+  Tray.updateFullscreen trayAddress fullscreen

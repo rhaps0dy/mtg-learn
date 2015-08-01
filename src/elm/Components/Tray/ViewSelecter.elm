@@ -1,4 +1,4 @@
-module Components.ViewSelecter (Model, init, Action, update, view) where
+module Components.Tray.ViewSelecter (Model, init, Action, update, view) where
 
 import Html as Html exposing (..)
 import Html.Attributes as Attr exposing (..)
@@ -6,7 +6,7 @@ import Html.Events exposing (onClick)
 import Signal
 import String
 
-import Components.Misc exposing (..)
+import Components.Misc exposing (labeledCheckbox)
 
 type alias Model =
   { pitch : Bool

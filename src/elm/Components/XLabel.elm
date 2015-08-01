@@ -6,7 +6,7 @@ module Components.XLabel (Model, init, Action, update, view) where
 import Components.NumLabel as NL
 import Components.YLabels as YLs
 import Components.YLabels.Pitch exposing (viewNoNums)
-import Components.ViewSelecter as VSel
+import Components.Tray.ViewSelecter as VSel
 import Graphics.Collage exposing (segment, Path, moveX)
 import HtmlEvents exposing (..)
 import Components.Misc exposing (whStyle)
