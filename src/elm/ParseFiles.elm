@@ -7,6 +7,7 @@ module ParseFiles
   , print
   , DecodedAudioBuffer
   , decodeAudioFile
+  , descriptorMailbox
   ) where
 
 import File exposing (..)
@@ -25,6 +26,9 @@ type alias Descriptors =
   { pitch : Buffer
   , energy : Buffer
   }
+
+descriptorMailbox : Signal.Mailbox Descriptors
+descriptorMailbox = Signal.mailbox {pitch = Buffer, energy = Buffer}
 
 descriptors : DecodedAudioBuffer -> Task String Descriptors
 descriptors = Native.ParseFiles.descriptors

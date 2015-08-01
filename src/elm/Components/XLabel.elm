@@ -63,6 +63,8 @@ view address model ylsModel vSelModel (width, height) sheet =
                    ("margin-top", toString (-componentH) ++ "px")::
                    ("position", "absolute")::
                    (whStyle width' componentH)
+                , Html.attribute "width" <| toString width
+                , Html.attribute "height" <| toString (round componentH)
                 ] []
              ] else []
         c2 = if vSelModel.energy then [

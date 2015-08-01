@@ -146,22 +146,40 @@ port sheetFiles =
    (Signal.dropRepeats (Signal.map (\m -> m.songSelecter.sheetFile) model))
 
 plotPitchAnalysis : ParseFiles.Buffer -> Float -> Float -> Float -> Float
-                                      -> Int -> Int -> Task x ()
-plotPitchAnalysis = PlotLine.plotBuffer Color.blue "pitch-canvas" 
- 
+                                      -> Int -> Int -> Task String ()
+plotPitchAnalysis = PlotLine.plotBuffer Color.lightBlue "pitch-canvas"
+
+bpm : Float
+bpm = 120
+
+-- COMPILER BUG: ParseFiles.descriptorMailbox.address cannot be found because
+-- 'The qualifier `ParseFiles.descriptorMailbox` is not in scope.'
+
+descriptorMailbox : Signal.Mailbox ParseFiles.Descriptors
+descriptorMailbox = ParseFiles.descriptorMailbox
+
 port descriptorsFiles : Signal (Task String ())
 port descriptorsFiles =
-  (\t cx cy uwx uwy (w,h) -> t `andThen`
+  (\t -> t `andThen`
    ParseFiles.decodeAudioFile `andThen`
    ParseFiles.descriptors `andThen`
---   ParseFiles.print
-   (\d -> plotPitchAnalysis d.pitch cx cy uwx uwy w h)
-  ) <~ Signal.dropRepeats ((\m -> m.songSelecter.audioFile) <~ model) ~
-       Signal.dropRepeats ((\m -> m.xLabel.center) <~ model) ~
-       Signal.dropRepeats ((\m -> -m.yLabels.pitch.centerA3Offset) <~ model) ~
-       Signal.dropRepeats ((\m -> m.xLabel.unitWidth) <~ model) ~
-       Signal.dropRepeats ((\m -> -m.yLabels.pitch.semitoneHeight) <~ model) ~
-       Window.dimensions
+   Signal.send descriptorMailbox.address) <~
+     Signal.dropRepeats ((\m -> m.songSelecter.audioFile) <~ model)
+
+port drawDescriptors : Signal (Task String ())
+port drawDescriptors =
+  (\d bpm cx cy uwx uwy (w,h) ->
+   let
+     xFactor = 44100 / 4096 * 60 / bpm
+   in
+     plotPitchAnalysis d.pitch (cx * xFactor) cy (uwx / xFactor) uwy w h) <~
+      descriptorMailbox.signal ~
+      Signal.dropRepeats ((\m -> toFloat m.playControls.bpm) <~ model) ~
+      Signal.dropRepeats ((\m -> m.xLabel.center) <~ model) ~
+      Signal.dropRepeats ((\m -> -m.yLabels.pitch.centerA3Offset) <~ model) ~
+      Signal.dropRepeats ((\m -> m.xLabel.unitWidth) <~ model) ~
+      Signal.dropRepeats ((\m -> m.yLabels.pitch.semitoneHeight) <~ model) ~
+      Window.dimensions
 
 
 port sendFullscreen : Signal (Task x ())

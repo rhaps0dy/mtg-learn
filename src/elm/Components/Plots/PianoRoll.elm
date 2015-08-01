@@ -27,11 +27,8 @@ processRoll' currentBeat notes =
                     } :: processRoll' (currentBeat + x.duration) xs
 
 
--- | Maybe in the future we can do binary search on this array to maybe speed
---   drawing up. Now it's a list.
--- Another way of speeding it up, likely to be much more fruitful, would be to
---   make plot a Signal of function, and precalculate as much as possible,
---   including the list of forms. This remains TODO for a future refactoring
+-- | Calculating what to draw is fast, but actually drawing it is not.
+--   Consider optimising canvas draws with a Javascript task
 processRoll : PF.Sheet -> List Note
 processRoll = processRoll' 0
 
