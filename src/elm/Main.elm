@@ -12,6 +12,7 @@ import Debug
 import Task exposing (Task, andThen)
 
 import Components.Tray as Tray
+import Components.NumLabel
 import Components.Tray.SongSelecter as SongSelecter
 import Components.XLabel as XLabel
 import HtmlEvents exposing (disableContextMenu)
@@ -21,31 +22,21 @@ import PlotLine
 
 type Action
   = NoOp
-  | YLabels YLabels.Action
-  | XLabel XLabel.Action
   | Tray Tray.Action
   | AudioAnalysisLoaded Bool
 
 type alias Model =
-  { yLabels : YLabels.Model
-  , xLabel : XLabel.Model
-  , tray : Tray.Model
+  { tray : Tray.Model
   }
 
 init : Model
 init =
-  { yLabels = YLabels.init
-  , xLabel = XLabel.init
-  , tray = Tray.init
+  { tray = Tray.init
   }
 
 update : Action -> Model -> Model
 update action model =
   case action of
-    YLabels a -> { model |
-                   yLabels <- YLabels.update a model.yLabels }
-    XLabel a -> { model |
-                  xLabel <- XLabel.update a model.xLabel }
     Tray a -> { model |
                 tray <- Tray.update a model.tray }
     _ -> model
@@ -55,7 +46,7 @@ update action model =
 view : Signal.Address Action -> Model -> (Int, Int) -> ParseFiles.Sheet -> Html
 view address model (w, h) sheet =
   let
-    (xLabels, yLabels) = Html.lazy3 XLabel.view model.tray.viewSelecter (w, h)
+    (xLabels, yLabels) = XLabel.view model.tray.viewSelecter (w, h)
   in
     div
      [ class "fullscreen"
@@ -118,7 +109,7 @@ port descriptorsFiles =
    Signal.send descriptorMailbox.address) <~
      Signal.dropRepeats ((\m -> m.tray.songSelecter.audioFile) <~ model)
 
-port drawDescriptors : Signal (Task String ())
+{- port drawDescriptors : Signal (Task String ())
 port drawDescriptors =
   (\d bpm cx cy uwx uwy (w,h) ->
    let
@@ -132,7 +123,7 @@ port drawDescriptors =
       Signal.dropRepeats ((\m -> m.xLabel.unitWidth) <~ model) ~
       Signal.dropRepeats ((\m -> m.yLabels.pitch.semitoneHeight) <~ model) ~
 -- This should be width and componentH in XLabel
-      Window.dimensions
+      Window.dimensions -}
 
 -- Necessary port plumbing for Tray.viewFullscreenButton
 port fullscreen : Signal Bool

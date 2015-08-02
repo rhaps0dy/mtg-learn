@@ -1,21 +1,11 @@
 module Components.NumLabel
-  ( Model
-  , init
-  , Action
-  , update
-  , viewOneDim
-  , view
-  , ViewType
-  , backgroundColor
-  , foregroundColor
-  , PlotFun
-  , firstLastIndices
+  ( firstLastIndices
   ) where
 
 {- This component shows a numeric scale in either the X or the Y axis
 -}
 
-import Html
+{- import Html
 import Html.Attributes as Html
 import Html.Events as Html
 import Graphics.Collage exposing (..)
@@ -47,16 +37,7 @@ drawLine line num =
     group [line', text']
 
 type alias ViewType =
-  Signal.Address Action -> Model -> (Float, Float) -> Html.Html
-
-firstLastIndices : Float -> Float -> Float -> (Int, Int)
-firstLastIndices width unitWidth center =
- let
-   nLinesHalfWidth = (width / 2) / unitWidth
-   firstLine = floor <| -center - nLinesHalfWidth
-   lastLine = ceiling <| -center + nLinesHalfWidth
- in
-   (firstLine, lastLine)
+  Signal.Address Action -> Model -> (Float, Float) -> Html.Html 
 
 lines : Float -> Float -> Float -> (Float -> Form -> Form) -> Path
       -> (Path -> Int -> Form) -> List Form
@@ -114,3 +95,13 @@ view plotFun centerX widthX centerY widthY width height =
      ]
      [ Html.fromElement <|
          collage width' height' (r::(linesX ++ linesY) ++ plot) ]
+-}
+
+firstLastIndices : Float -> Float -> Float -> (Int, Int)
+firstLastIndices width unitWidth center =
+ let
+   nLinesHalfWidth = (width / 2) / unitWidth
+   firstLine = floor <| -center - nLinesHalfWidth
+   lastLine = ceiling <| -center + nLinesHalfWidth
+ in
+   (firstLine, lastLine)

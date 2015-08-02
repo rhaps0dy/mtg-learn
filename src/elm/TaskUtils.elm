@@ -1,9 +1,9 @@
-module TaskUtils (combine) where
+module TaskUtils (combineDiscard) where
 
 import Task
 
-combine : List (Task.Task a ()) -> Task.Task a ()
-combine taskList =
+combineDiscard : List (Task.Task a ()) -> Task.Task a ()
+combineDiscard taskList =
   case taskList of
     [] ->
       Task.succeed ()

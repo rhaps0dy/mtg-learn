@@ -101,19 +101,10 @@ $y-label-width: 40px;
   float: left;
 }
 
-.pos-absolute {
-  position: absolute;
-}
-
 .main-canvases {
   position: absolute;
   left: $y-label-width;
   top: 0px;
-
-  > div:first-child {
-    bottom: 0px;
-    position: absolute;
-  }
 }
 
 $x-label-height: 25px;

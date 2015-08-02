@@ -60,8 +60,7 @@ update action model =
       { model | mouseDown <- Nothing }
     MouseEnter (mbs, pos) ->
       if HtmlEvents.anyPressed mbs then
-        { model | mouseDown <- Just mbs
-                , mousePosMD <- pos
+        { model | mousePosMD <- pos
                 , centerXMD <- model.centerX
                 , unitWidthXMD <- model.unitWidthX
                 , centerYMD <- model.centerY

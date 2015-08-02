@@ -2,7 +2,6 @@ module Components.Plots.PianoRoll
   ( plot
   ) where
 
-import Components.NumLabel exposing (PlotFun)
 import ParseFiles as PF
 import List
 import Graphics.Collage exposing (..)
@@ -33,7 +32,7 @@ processRoll : PF.Sheet -> List Note
 processRoll = processRoll' 0
 
 
-plot : PF.Sheet -> PlotFun
+plot : PF.Sheet -> Float -> Float -> Float -> Float -> Float -> Float -> List Form
 plot sheet centerX unitWidthX centerY unitWidthY _ _ =
   let
     renderNote {start, duration, pitch} =
