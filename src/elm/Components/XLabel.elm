@@ -2,84 +2,169 @@ module Components.XLabel (Model, init, Action, update, view) where
 
 {- This component shows the time scale in the x axis
 -}
-
-import Components.NumLabel as NL
-import Components.YLabels as YLs
-import Components.YLabels.Pitch exposing (viewNoNums)
+import Components.LabelCommon as LC
+import ParseFiles
+import Window
+import Signal
+import TaskUtils
+import Task
 import Components.Tray.ViewSelecter as VSel
-import Graphics.Collage exposing (segment, Path, moveX)
-import HtmlEvents exposing (..)
 import Components.Misc exposing (whStyle)
 import Html
 import Html.Attributes as Html
 import Html.Events as Html
 
-import ParseFiles
+import Components.NumLabel as NL
+import Components.YLabels as YLs
+import Components.YLabels.Pitch exposing (viewNoNums)
+import Graphics.Collage exposing (segment, Path, moveX)
+import HtmlEvents exposing (..)
+
 import Components.Plots.PianoRoll
 
-type alias Model = NL.Model
+type alias Model = 
+  { pitch : LC.Model
+  , energy : LC.Model
+  , sheet : Maybe ParseFiles.Sheet
+  , descriptors : Maybe ParseFiles.Descriptors
+  , descriptorsLive : Maybe ParseFiles.Descriptors
+  }
+
+type Action
+  = NoOp
+  | Pitch LC.Action
+  | Energy LC.Action
+  | Resize (Int, Int)
 
 init : Model
-init = NL.init
-
-type alias Action = NL.Action
+init =
+  { pitch = LC.init
+  , energy = LC.init
+  , sheet = Nothing
+  , descriptors = Nothing
+  , descriptorsLive = Nothing
+  }
 
 update : Action -> Model -> Model
-update = NL.update fst
+update action model =
+  case action of
+    Pitch a ->
+      { model | pitch <- LC.update a model.pitch }
+    Energy a ->
+      { model | energy <- LC.update a model.energy }
+    _ ->
+      model
 
+actions : Signal.Mailbox Action
+actions = Signal.mailbox NoOp
 
-labelHeight : Int
-labelHeight = 25
+-- Please assign this to a port in Main
+tasks : Signal (Int, Int) -> Signal (Task () ())
+tasks =
+  let
+    sendSizes size =
+      TaskUtils.combineDiscard
+       [ Signal.send actions.address (Pitch LC.Resize size)
+       , Signal.send actions.address (Energy LC.Resize size)
+       ]
+  in
+    Signal.map sendSizes
+             
+-- yLabelWidth is from $yLabel-width in style.scss
+yLabelWidth : Int
+yLabelWidth = 40
+
+xLabelHeight : Int
+xLabelHeight = 25
 
 topMostPosition : Float
-topMostPosition = toFloat labelHeight / 2
+topMostPosition = toFloat xLabelHeight / 2
 
 lineLength : Float
 lineLength = 4
 
-line : Path
+{- line : Path
 line = segment (0, topMostPosition) (0, topMostPosition - lineLength)
 
 view' : NL.ViewType
-view' = NL.viewOneDim line fst moveX
+view' = NL.viewOneDim line fst moveX -}
 
-view : Signal.Address Action -> Model -> YLs.Model -> VSel.Model -> (Int, Int) -> ParseFiles.Sheet -> Html.Html
-view address model ylsModel vSelModel (width, height) sheet =
+canvas : Int -> Int -> Bool -> String -> Html.Html
+canvas width height isFirst id =
+  Html.canvas
+   [ Html.id id
+   , Html.style <|
+       (("position", "absolute") ::
+         (if isFirst then [] else [("top", toString height + "px")])) ++
+       (whStyle width height)
+   , Html.attribute "width" <| toString width
+   , Html.attribute "height" <| toString height
+   ] [ ]
+
+getNCompAndHeight : Float -> VSel.Model -> (Int, Float)
+getNCompAndHeight height' vSelModel =
   let
-    width' = toFloat width
-    height' = toFloat height
-    labelHeight' = toFloat labelHeight
-    adjHeight' = height' - labelHeight'
-    (nComp, componentH) = YLs.getNCompAndHeight adjHeight' vSelModel
-    panels =
+    nComp = (if vSelModel.pitch then 1 else 0) + (if vSelModel.energy then 1 else 0)
+    componentH = height' / toFloat nComp
+  in
+    (nComp, componentH)
+
+-- | This view returns the needed Html and a function that given a Model returns a
+-- rendering Task.
+view : VSel.Model -> (Int, Int) -> (Html.Html, Html.Html)
+view vSelModel (width, height) =
+  let
+    adjHeight' = toFloat (height - xLabelHeight)
+    (nComp, componentH') = getNCompAndHeight adjHeight' vSelModel
+    componentH = floor componentH'
+    yLabelH = componentH * nComp
+    xLabelH = height - yLabelH
+    canvas' = canvas width height
+    xLabels =
       let
         c1 = if vSelModel.pitch then [
-               viewNoNums ylsModel.pitch width' componentH
-             , Html.canvas
-                [ Html.id "pitch-canvas"
-                , Html.style <|
-                   ("margin-top", toString (-componentH) ++ "px")::
-                   ("position", "absolute")::
-                   (whStyle width' componentH)
-                , Html.attribute "width" <| toString width
-                , Html.attribute "height" <| toString (round componentH)
-                ] []
-             ] else []
-        c2 = if vSelModel.energy then [
-               NL.view (\_ _ _ _ _ _ -> [])
-                 model.center model.unitWidth
-                 ylsModel.energy.center ylsModel.energy.unitWidth
-                 width' componentH
-             ] else []
+               , canvas' True "pitch-label"
+               , canvas' False "pitch-pianoroll"
+               , canvas' False "pitch-expert"
+               , canvas' False "pitch-live"
+               ] else []
+        c1 = if vSelModel.energy then [
+               , canvas' True "energy-label"
+               , canvas' False "energy-expert"
+               , canvas' False "energy-live"
+               ] else []
       in
         c1 ++ c2
+    canvas'' = canvas xLabelWidth height True
+    yLabels =
+      let
+        c1 = if vSelModel.pitch then [
+               , canvas'' "pitch-ylabel"
+               ] else []
+        c1 = if vSelModel.energy then [
+               , canvas'' "energy-ylabel"
+               ] else []
+      in
+        c1 ++ c2
+    mainView =
+      Html.div
+       [ Html.style <| whStyle width height
+       , Html.class "main-canvases"
+       ]
+       [ canvas width xLabelH True "horizontal-label"
+       , Html.div
+          [ Html.style (whStyle width yLabelH)
+          ] xLabels
+       ]
+    trayView =
+      Html.div
+       [ Html.style <| whStyle width height
+       , Html.class "pos-absolute"
+       ] (yLabels ++ [Html.div [ Html.class "black-axis-end" ] []])
   in
-    Html.div
-     [ Html.style <| whStyle width' height'
-     , Html.class "main-canvases"
-     ]
-     [ view' address model (width', labelHeight')
-     , Html.div
-        [ Html.style <| whStyle width' adjHeight'
-        ] panels
-     ]
+    (mainView, trayView)
+
+{-
+, Model -> Task.Task () ())
+    taskFun -> (\_ -> Task.succeed ())
+-}

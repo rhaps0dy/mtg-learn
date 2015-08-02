@@ -52,14 +52,6 @@ update action model =
 labelWidth : Int
 labelWidth = 40
 
-getNCompAndHeight : Float -> VSel.Model -> (Int, Float)
-getNCompAndHeight height' vSelModel =
-  let
-    nComp = (if vSelModel.pitch then 1 else 0) + (if vSelModel.energy then 1 else 0)
-    componentH = height' / toFloat nComp
-  in
-    (nComp, componentH)
-
 view : Signal.Address Action -> Model -> VSel.Model -> (Int, Int) -> Html.Html
 view address model vSelModel (width, height) =
   let

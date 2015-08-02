@@ -25,6 +25,7 @@ import Signal
 import Text
 import HtmlEvents exposing (..)
 import Components.Misc exposing (whStyle)
+import Components.LabelCommon as LC
 
 backgroundColor : Color
 backgroundColor = black
@@ -32,54 +33,6 @@ backgroundColor = black
 foregroundColor : Color
 foregroundColor = white
 
-type alias Model =
-  { center : Float
-  , unitWidth : Float
-  , mouseDown : Maybe MouseButton
-  , mousePosMD : (Int, Int)
-  , centerMD : Float
-  , unitWidthMD : Float
-  }
-
-init : Model
-init =
-  { center = 0
-  , unitWidth = 20
-  , mouseDown = Nothing
-  , mousePosMD = (0, 0)
-  , centerMD = 0
-  , unitWidthMD = 20
-  }
-
-type Action
-  = NoOp
-  | MouseMove (Int, Int)
-  | MouseDown (MouseButton, (Int, Int))
-  | MouseUp
-
-update : ((Int, Int) -> Int) -> Action -> Model -> Model
-update tfun action model =
-  case action of
-    MouseDown (mb, pos) ->
-      { model | mouseDown <- Just mb
-              , mousePosMD <- pos
-              , centerMD <- model.center
-              , unitWidthMD <- model.unitWidth
-              }
-    MouseUp ->
-      { model | mouseDown <- Nothing }
-    MouseMove pos ->
-      if model.mouseDown == Nothing || model.mouseDown == Just Middle then
-        model
-      else
-        if model.mouseDown == Just Left then
-          { model | center <- model.centerMD +
-                      toFloat (tfun pos - tfun model.mousePosMD)
-                        / model.unitWidth }
-        else
-          { model | unitWidth <- model.unitWidthMD +
-                      toFloat (tfun pos - tfun model.mousePosMD) / 10 }
-    _ -> model
 
 drawLine : Path -> Int -> Form
 drawLine line num =

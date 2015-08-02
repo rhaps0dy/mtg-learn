@@ -4,7 +4,11 @@ module HtmlEvents
   , onMouseMove
   , onMouseDown
   , onMouseUp
+  , onMouseEnter
+  , onMouseLeave
   , MouseButton(..)
+  , MouseButtonSet
+  , anyPressed
   , onChangeFile
   , disableContextMenu
   ) where
@@ -15,6 +19,7 @@ import Html.Events as Events exposing (onClick, on, targetValue, targetChecked)
 import Json.Decode as Decode exposing ((:=), string, Decoder, int, object2)
 import Signal
 import File exposing (File)
+import Bitwise
 
 import Native.File
 
@@ -59,6 +64,25 @@ onMouseDown address fun =
 onMouseUp : Signal.Address a -> ((MouseButton, (Int, Int)) -> a) -> Attribute
 onMouseUp address fun =
   on "mouseup" mousePressDecoder (Signal.message address << fun)
+
+
+type alias MouseButtonSet = Int
+
+anyPressed : MouseButtonSet -> Bool
+anyPressed mbs = mbs /= 0
+
+mousePressedDecoder : Decoder (MouseButtonSet, (Int, Int))
+mousePressedDecoder = 
+  object2 (,) ("buttons" := int) mouseMoveDecoder
+
+onMouseEnter : Signal.Address a -> ((MouseButtonSet, (Int, Int)) -> a) -> Attribute
+onMouseEnter address fun =
+  on "mouseenter" mousePressedDecoder (Signal.message address << fun)
+
+onMouseLeave : Signal.Address a -> ((MouseButtonSet, (Int, Int)) -> a) -> Attribute
+onMouseLeave address fun =
+  on "mouseleave" mousePressedDecoder (Signal.message address << fun)
+
 
 fileListDecoder : Decoder (List File)
 fileListDecoder = Native.File.fileListDecoder

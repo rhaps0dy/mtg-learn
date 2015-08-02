@@ -13,7 +13,6 @@ import Task exposing (Task, andThen)
 
 import Components.Tray as Tray
 import Components.Tray.SongSelecter as SongSelecter
-import Components.YLabels as YLabels
 import Components.XLabel as XLabel
 import HtmlEvents exposing (disableContextMenu)
 
@@ -56,14 +55,12 @@ update action model =
 view : Signal.Address Action -> Model -> (Int, Int) -> ParseFiles.Sheet -> Html
 view address model (w, h) sheet =
   let
-    yLabels = Html.lazy3 (YLabels.view (Signal.forwardTo address YLabels))
-                   model.yLabels model.tray.viewSelecter (YLabels.labelWidth, h)
+    (xLabels, yLabels) = Html.lazy3 XLabel.view model.tray.viewSelecter (w, h)
   in
     div
      [ class "fullscreen"
      , disableContextMenu ]
-     [ XLabel.view (Signal.forwardTo address XLabel) model.xLabel
-         model.yLabels model.tray.viewSelecter (w-YLabels.labelWidth, h) sheet
+     [ xLabels
      , Html.lazy2 Tray.view trayAddress model.tray
      , div [ class "y-label" ]
         [ yLabels
