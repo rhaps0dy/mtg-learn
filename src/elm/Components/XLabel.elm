@@ -78,18 +78,6 @@ yLabelWidth = 40
 xLabelHeight : Int
 xLabelHeight = 25
 
-topMostPosition : Float
-topMostPosition = toFloat xLabelHeight / 2
-
-lineLength : Float
-lineLength = 4
-
-{- line : Path
-line = segment (0, topMostPosition) (0, topMostPosition - lineLength)
-
-view' : NL.ViewType
-view' = NL.viewOneDim line fst moveX -}
-
 canvas : Int -> Int -> List (String, String) -> Bool -> String ->
          Maybe (Signal.Address LC.Action) -> Html.Html
 canvas width height styles isFirst id address =
@@ -171,12 +159,13 @@ view vSelModel (windowWidth, height) =
     drawTask m = 
       TaskUtils.sequence
        [ NumLabel.bidimensional "energy-label" (width, componentH) m.energy
+       , NumLabel.vertical "energy-ylabel" (yLabelWidth, componentH) m.energy
+-- irrelevant which model we choose here, all have the same horizontal attributes
+       , NumLabel.horizontal "horizontal-label" (width, xLabelHeight) m.energy
        ]
 {-       [ PitchLabel.withoutNotes "pitch-label" size model.pitch
        , NumLabel.bidimensional "energy-label" size model.energy
        , PitchLabel.vertical "pitch-ylabel" size model.pitch
-       , NumLabel.vertical "energy-ylabel" size model.energy
-       , NumLabel.horizontal "horizontal-label" size model.pitch
        ] -}
 
   in
