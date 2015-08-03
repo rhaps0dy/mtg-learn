@@ -8,7 +8,7 @@ module Components.Labels.NumLabel
 {- This component shows a numeric scale in either the X or the Y axis
 -}
 
-import Components.Labels.LabelCommon as LC
+import Components.Labels.Common as LC
 import Graphics.Collage as C exposing (defaultLine)
 import Task
 import TaskUtils
