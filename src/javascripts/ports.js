@@ -58,7 +58,7 @@ var elm_app = Elm.fullscreen(Elm.Main,
 // Loads the audio analysis runtime and signals its completion to the Elm runtime
 (function(document, elm_app) {
   var script = document.createElement('script');
-  script.src = "/audio_analysis.js";
+  script.src = "audio_analysis.js";
   // Try to run main in intervals of 50ms
   // There is no event for after main has ran and we can use the Emscripten
   // runtime
