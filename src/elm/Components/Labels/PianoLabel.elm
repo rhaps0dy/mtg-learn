@@ -1,78 +1,25 @@
-module Components.YLabels.Pitch
-  ( Model
-  , init
-  , Action
-  , update
-  , view
-  , viewNoNums
+module Components.Labels.PianoLabel
+  ( withoutNotes
+  , withNotes
   ) where
 
 {- Component that shows the pitch label -}
 
-import Graphics.Collage exposing (..)
-import Color exposing (..)
+import Graphics.Collage as C
+import Components.Labels.Common as LC
+import Components.Labels.NumLabel as NL
+import TaskUtils
+import Color
 import Array
 import Text
 import Signal
-import Html
-import Html.Attributes as Html
-import Html.Events as Html
-import HtmlEvents exposing (..)
-import Components.Misc exposing (whStyle)
 import Debug
 
+foregroundColor : Color.Color
+foregroundColor = Color.white
 
-type alias Model =
-  { centerA3Offset : Float
-  , semitoneHeight : Float
-  , mouseDown : Maybe MouseButton
-  , mousePosMD : (Int, Int)
-  , semitoneHeightMD : Float
-  , centerA3OffsetMD : Float
-  }
-
-
-init : Model
-init =
-  { centerA3Offset = 0
-  , semitoneHeight = 10
-  , mouseDown = Nothing
-  , mousePosMD = (0, 0)
-  , semitoneHeightMD = 0
-  , centerA3OffsetMD = 0
-  }
-
-
-type Action
-  = NoOp
-  | MouseMove (Int, Int)
-  | MouseDown (MouseButton, (Int, Int))
-  | MouseUp
-
-update : Action -> Model -> Model
-update action model =
-  case action of
-    MouseDown (mb, pos) ->
-      { model | mouseDown <- Just mb
-              , mousePosMD <- pos
-              , semitoneHeightMD <- model.semitoneHeight
-              , centerA3OffsetMD <- model.centerA3Offset
-              }
-    MouseUp ->
-      { model | mouseDown <- Nothing }
-    MouseMove (_, y) ->
-      if model.mouseDown == Nothing || model.mouseDown == Just Middle then
-        model
-      else
-        if model.mouseDown == Just Left then
-          -- compiler got stuck here on an infinite loop when <- was =
-          { model | centerA3Offset <- model.centerA3OffsetMD +
-                      toFloat (y - snd model.mousePosMD) / model.semitoneHeight }
-        else
-          { model | semitoneHeight <- model.semitoneHeightMD +
-                      toFloat (y - snd model.mousePosMD) / 10 }
-    _ -> model
-
+backgroundColor : Color.Color
+backgroundColor = Color.black
 
 a3OffsetNames : Array.Array String
 a3OffsetNames = Array.fromList
@@ -88,74 +35,54 @@ a3OffsetToName n =
   in
     toString pitchIndex ++ " " ++ name
 
+whiteOffsets : Array.Array Bool
+whiteOffsets = Array.fromList
+  [True, False, True, True, False, True, False, True, True, False, True, False]
 
-countDownList : Int -> Int -> List Int
-countDownList highest lowest =
-  if highest < lowest
-    then []
-    else highest :: countDownList (highest-1) lowest
+fgbgRectangles : Bool -> Int -> Int -> List Int
+fgbgRectangles isForeground first last =
+  List.filter (\i -> Array.get (i%12) whiteOffsets == Just isForeground) [first..last]
 
-
-a3OffsetColors : Array.Array Color
-a3OffsetColors =
-  Array.fromList [ white, black, white, white, black, white, black, white
-                 , white, black, white, black]
-
-
-a3OffsetToColors : Int -> (Color, Color)
-a3OffsetToColors i =
+withoutNotes : LC.ViewFun
+withoutNotes id (width', height') {centerY, unitWidthY} =
   let
-    (Just c) = Array.get (i%12) a3OffsetColors
-  in
-    (c, if c == white then black else white)
-
-type alias NoteRectangleFun =
-  Float -> Float -> Float -> Int -> Form
-
-noteRectangle' : Bool -> NoteRectangleFun
-noteRectangle' showNames width height margin a3Offset =
-  let
-    (c1, c2) = a3OffsetToColors a3Offset
-    rectangle = rect width height
-                 |> filled c1
-    text' = Text.fromString (a3OffsetToName a3Offset)
-             |> Text.height (min (height - 2) 14)
-             |> Text.color c2
-             |> text
-  in
-    (if showNames then group [rectangle, text'] else rectangle)
-     |> moveY (margin + height * toFloat a3Offset)
-
-
-type alias ViewFun =
-  Signal.Address Action -> Model -> Float -> Float -> Html.Html
-
-view' : NoteRectangleFun -> ViewFun
-view' noteRectangle address {centerA3Offset, semitoneHeight} width height =
-  let
+    width = toFloat width'
+    height = toFloat height'
+    (lowestNote, highestNote) =
+      NL.firstLastIndices height unitWidthY centerY
+    fgRect =
+      C.rect width unitWidthY
+       |> C.filled foregroundColor
     -- We want the pitches to be centered on their rectangles, not at the bottom
-    offsetForGrid = centerA3Offset + 0.5
-    nSemitonesHalfHeight = (height / 2) / semitoneHeight
-    lowestNote = floor <| offsetForGrid - nSemitonesHalfHeight
-    highestNote = floor <| offsetForGrid + nSemitonesHalfHeight
-    margin = -centerA3Offset * semitoneHeight
-    rectangles = List.map (noteRectangle width semitoneHeight margin)
-                  [lowestNote..highestNote]
+    rectangles =
+      List.map (\i -> C.move (width/2, (toFloat i + 0.5 + centerY) * unitWidthY)
+                fgRect) (fgbgRectangles True lowestNote highestNote)
   in
-    Html.div
-     [ Html.style <| whStyle width height
-     , onMouseMove address MouseMove
-     , onMouseDown address MouseDown
-     , onMouseUp address (\_ -> MouseUp)
-     , Html.onMouseOut address MouseUp
-     ]
-     [ Html.fromElement <| collage (round width) (round height) rectangles ]
+    TaskUtils.formsToDrawTask id rectangles
+      (centerY, unitWidthY, width', height')
 
-view : ViewFun
-view = view' (noteRectangle' True)
+note : Float -> Color.Color -> Int -> C.Form
+note height color i =
+  Text.fromString (a3OffsetToName i)
+   |> Text.height (min 14 (height-2))
+   |> Text.color color
+   |> C.text
 
-dummy : Signal.Mailbox Action
-dummy = Signal.mailbox NoOp
-
-viewNoNums : Model -> Float -> Float -> Html.Html
-viewNoNums = view' (noteRectangle' False) dummy.address
+withNotes : LC.ViewFun
+withNotes id (width', height') {centerY, unitWidthY} =
+  let
+    width = toFloat width'
+    height = toFloat height'
+    (lowestNote, highestNote) =
+      NL.firstLastIndices height unitWidthY centerY
+    noteFg = note height backgroundColor
+    notesFg =
+      List.map (\i -> C.move (width/2, (toFloat i + 0.5 + centerY) * unitWidthY)
+                (noteFg i)) (fgbgRectangles True lowestNote highestNote)
+    noteBg = note height foregroundColor
+    notesBg =
+      List.map (\i -> C.move (width/2, (toFloat i + 0.5 + centerY) * unitWidthY)
+                (noteBg i)) (fgbgRectangles False lowestNote highestNote)
+  in
+    TaskUtils.formsToDrawTask id (notesFg ++ notesBg)
+      (centerY, unitWidthY, width', height')

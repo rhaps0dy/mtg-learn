@@ -3,9 +3,11 @@ module Components.Labels.Common
   , Action(..)
   , init
   , update
+  , ViewFun
   ) where
 
 import HtmlEvents exposing (MouseButton(..), MouseButtonSet)
+import Task
 
 type alias Model =
   { centerX : Float
@@ -95,3 +97,5 @@ update action model =
                 toFloat (snd pos - snd model.mousePosMD) / 10
             }
     _ -> model
+
+type alias ViewFun = String -> (Int, Int) -> Model -> Task.Task String ()

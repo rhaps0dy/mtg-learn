@@ -45,6 +45,8 @@ window.Elm.Native.TaskUtils.make = function(localRuntime) {
         callback(Task.succeed(Utils.Tuple0));
       } else {
         cache[id] = checkCache;
+        // We won't reach that screen size, right?
+        ctx.clearRect(0, 0, 5000, 5000);
         var formStepper = Collage.formStepper(forms);
         while(formStepper.peekNext()) {
           var f = formStepper.next(ctx);

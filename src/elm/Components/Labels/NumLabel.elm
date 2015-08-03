@@ -54,24 +54,21 @@ firstLastIndices width unitWidth center =
    (firstLine, lastLine)
 
 -- TODO: Reduce code duplication here
-bidimensional : String -> (Int, Int) -> LC.Model -> Task.Task String ()
+bidimensional : LC.ViewFun
 bidimensional id (width', height') model =
   let
     width = toFloat width'
     height = toFloat height'
-    r = C.rect width height
-         |> C.filled backgroundColor
-         |> C.move (width/2, height/2)
     lineX = C.segment (0, 0) (0, height)
     lineY = C.segment (0, 0) (width, 0)
     linesX = lines width model.unitWidthX model.centerX C.moveX lineX drawLine
     linesY = lines height model.unitWidthY model.centerY C.moveY lineY drawLine
   in
-    TaskUtils.formsToDrawTask id (r::(linesX ++ linesY))
+    TaskUtils.formsToDrawTask id (linesX ++ linesY)
       (model.unitWidthX, model.unitWidthY, model.centerX, model.centerY,
        width', height')
 
-vertical : String -> (Int, Int) -> LC.Model -> Task.Task String ()
+vertical : LC.ViewFun
 vertical id (width', height') model =
   let
     width = toFloat width'
@@ -87,18 +84,15 @@ vertical id (width', height') model =
     TaskUtils.formsToDrawTask id (r::(linesY ++ numsY))
       (model.centerY, model.unitWidthY, width', height')
 
-horizontal : String -> (Int, Int) -> LC.Model -> Task.Task String ()
+horizontal : LC.ViewFun
 horizontal id (width', height') model =
   let
     width = toFloat width'
     height = toFloat height'
-    r = C.rect width height
-         |> C.filled backgroundColor
-         |> C.move (width/2, height/2)
     lineX = C.segment (0, 0) (0, 4)
     linesX = lines width model.unitWidthX model.centerX C.moveX lineX drawLine
     numsX = lines width model.unitWidthX model.centerX C.moveX lineX
       (\a b -> C.moveY (height/2) (drawNum a b))
   in
-    TaskUtils.formsToDrawTask id (r::(linesX ++ numsX))
+    TaskUtils.formsToDrawTask id (linesX ++ numsX)
       (model.centerX, model.unitWidthX, width', height')

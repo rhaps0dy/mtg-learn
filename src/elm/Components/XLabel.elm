@@ -16,7 +16,7 @@ import HtmlEvents as HEv
 import Debug
 
 import Components.Labels.NumLabel as NumLabel
---import Components.Labels.PitchLabel as PitchLabel
+import Components.Labels.PianoLabel as PianoLabel
 
 type alias Model = 
   { pitch : LC.Model
@@ -112,9 +112,8 @@ getNCompAndHeight height' vSelModel =
 -- | This view returns the needed Html and a function that given a Model returns a
 -- rendering Task.
 view : VSel.Model -> (Int, Int) -> (Html.Html, Html.Html, Model -> Task.Task String ())
-view vSelModel (windowWidth, height) =
+view vSelModel (width, height) =
   let
-    width = windowWidth - yLabelWidth
     adjHeight' = toFloat (height - xLabelHeight)
     (nComp, componentH') = getNCompAndHeight adjHeight' vSelModel
     componentH = floor componentH'
@@ -156,17 +155,17 @@ view vSelModel (windowWidth, height) =
       Html.div
        [ Html.style <| ("position", "absolute")::whStyle yLabelWidth height
        ] (yLabels ++ [Html.div [ Html.class "black-axis-end" ] []])
+    panelSize = (width, componentH)
+    yLabelSize = (yLabelWidth, componentH)
     drawTask m = 
       TaskUtils.sequence
-       [ NumLabel.bidimensional "energy-label" (width, componentH) m.energy
-       , NumLabel.vertical "energy-ylabel" (yLabelWidth, componentH) m.energy
+       [ NumLabel.bidimensional "energy-label" panelSize m.energy
+       , PianoLabel.withoutNotes "pitch-label" panelSize m.pitch
+       , NumLabel.vertical "energy-ylabel" yLabelSize m.energy
+       , PianoLabel.withNotes "pitch-ylabel" yLabelSize m.pitch
 -- irrelevant which model we choose here, all have the same horizontal attributes
        , NumLabel.horizontal "horizontal-label" (width, xLabelHeight) m.energy
        ]
-{-       [ PitchLabel.withoutNotes "pitch-label" size model.pitch
-       , NumLabel.bidimensional "energy-label" size model.energy
-       , PitchLabel.vertical "pitch-ylabel" size model.pitch
-       ] -}
 
   in
     (mainView, trayView, drawTask)
