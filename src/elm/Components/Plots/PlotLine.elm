@@ -1,5 +1,6 @@
 module PlotLine
   ( plotBuffer
+  , formsToDrawTask
   ) where
 
 import Native.PlotLine

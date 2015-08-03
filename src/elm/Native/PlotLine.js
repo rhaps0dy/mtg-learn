@@ -8,7 +8,7 @@ window.Elm.Native.PlotLine.make = function(localRuntime) {
   var Task = Elm.Native.Task.make(localRuntime);
   var Utils = Elm.Native.Utils.make(localRuntime);
   var Color = Elm.Color.make(localRuntime);
-  var flind = Elm.Components.NumLabel.make(localRuntime).firstLastIndices;
+  var flind = Elm.Components.Labels.NumLabel.make(localRuntime).firstLastIndices;
 
   // This function could be curried, and the part extracting color precalculated
   function plot(color) {
@@ -62,6 +62,25 @@ window.Elm.Native.PlotLine.make = function(localRuntime) {
       callback(Task.succeed(Utils.tuple0));
     });
   }}}}}}}}}
+
+  function areEquals(a, b) {
+    if(typeof a === "object") {
+      if(typeof b !== "object") {
+        return false;
+      } else {
+        for(k in a)
+          if(!b.hasOwnProperty(k))
+            return false;
+        for(k in b)
+          if(!areEquals(a[k],b[k]))
+            return false;
+        return true;
+      }
+    } else {
+      return a === b;
+    }
+  }
+
 
   return localRuntime.Native.PlotLine.values =
     { plotBuffer: plot

@@ -12,13 +12,12 @@ import Debug
 import Task exposing (Task, andThen)
 
 import Components.Tray as Tray
-import Components.NumLabel
+import Components.Labels.NumLabel
 import Components.Tray.SongSelecter as SongSelecter
 import Components.XLabel as XLabel
 import HtmlEvents exposing (disableContextMenu)
 
 import ParseFiles
-import PlotLine
 
 type Action
   = NoOp
@@ -43,26 +42,34 @@ update action model =
 
 
 
-view : Signal.Address Action -> Model -> (Int, Int) -> ParseFiles.Sheet -> Html
-view address model (w, h) sheet =
+view : Signal.Address Action -> Model -> (Int, Int) -> (Html, XLabel.Model -> Task String ())
+view address model (w, h) =
   let
-    (xLabels, yLabels) = XLabel.view model.tray.viewSelecter (w, h)
+    (xLabels, yLabels, task) = XLabel.view model.tray.viewSelecter (w, h)
+    html =
+      div
+       [ class "fullscreen"
+       , disableContextMenu ]
+       [ xLabels
+       , Html.lazy2 Tray.view trayAddress model.tray
+       , div [ class "y-label" ]
+          [ yLabels
+          , Html.lazy2 Tray.viewToggleTrayButton trayAddress model.tray
+          , Html.lazy2 Tray.viewFullscreenButton trayAddress model.tray
+          ]
+       ]
   in
-    div
-     [ class "fullscreen"
-     , disableContextMenu ]
-     [ xLabels
-     , Html.lazy2 Tray.view trayAddress model.tray
-     , div [ class "y-label" ]
-        [ yLabels
-        , Html.lazy2 Tray.viewToggleTrayButton trayAddress model.tray
-        , Html.lazy2 Tray.viewFullscreenButton trayAddress model.tray
-        ]
-     ]
+    (html, task)
+
+viewDrawTask : Signal (Html, XLabel.Model -> Task String ())
+viewDrawTask =
+  view actions.address <~ Signal.dropRepeats model ~ Window.dimensions
+
+port draw : Signal (Task String ())
+port draw = (\f x -> f x) <~ (snd <~ viewDrawTask) ~ XLabel.model
 
 main : Signal Html
-main = Signal.map3 (view actions.address) (Signal.dropRepeats model)
-         Window.dimensions sheet.signal
+main = fst <~ viewDrawTask
 
 model : Signal Model
 model = Signal.foldp update init (Signal.mergeMany
@@ -80,7 +87,7 @@ trayAddress = Signal.forwardTo actions.address Tray
 
 port audioAnalysisLoading : Signal Bool
 
-sheet : Signal.Mailbox ParseFiles.Sheet
+{- sheet : Signal.Mailbox ParseFiles.Sheet
 sheet = Signal.mailbox []
 
 port sheetFiles : Signal (Task String ())
@@ -109,7 +116,7 @@ port descriptorsFiles =
    Signal.send descriptorMailbox.address) <~
      Signal.dropRepeats ((\m -> m.tray.songSelecter.audioFile) <~ model)
 
-{- port drawDescriptors : Signal (Task String ())
+port drawDescriptors : Signal (Task String ())
 port drawDescriptors =
   (\d bpm cx cy uwx uwy (w,h) ->
    let

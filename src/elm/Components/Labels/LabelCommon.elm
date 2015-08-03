@@ -1,4 +1,4 @@
-module Components.LabelCommon
+module Components.Labels.LabelCommon
   ( Model
   , Action(..)
   , init

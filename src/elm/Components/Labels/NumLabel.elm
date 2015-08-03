@@ -1,46 +1,41 @@
-module Components.NumLabel
+module Components.Labels.NumLabel
   ( firstLastIndices
+  , bidimensional
+--  , vertical
+--  , horizontal
   ) where
 
 {- This component shows a numeric scale in either the X or the Y axis
 -}
 
-{- import Html
-import Html.Attributes as Html
-import Html.Events as Html
-import Graphics.Collage exposing (..)
-import Color exposing (..)
-import Array exposing (Array)
-import Signal
+import Components.Labels.LabelCommon as LC
+import Graphics.Collage as C exposing (defaultLine)
+import Task
+import TaskUtils
+import Color
 import Text
-import HtmlEvents exposing (..)
-import Components.Misc exposing (whStyle)
-import Components.LabelCommon as LC
 
-backgroundColor : Color
-backgroundColor = black
+backgroundColor : Color.Color
+backgroundColor = Color.black
 
-foregroundColor : Color
-foregroundColor = white
+foregroundColor : Color.Color
+foregroundColor = Color.white
 
 
-drawLine : Path -> Int -> Form
+drawLine : C.Path -> Int -> C.Form
 drawLine line num =
   let
-    line' = traced { defaultLine | color <- foregroundColor } line
+    line' = C.traced { defaultLine | color <- foregroundColor } line
     text' =
       Text.fromString (toString num)
        |> Text.height (min (14 - 2) 14)
        |> Text.color foregroundColor
-       |> text
+       |> C.text
   in
-    group [line', text']
+    C.group [line', text']
 
-type alias ViewType =
-  Signal.Address Action -> Model -> (Float, Float) -> Html.Html 
-
-lines : Float -> Float -> Float -> (Float -> Form -> Form) -> Path
-      -> (Path -> Int -> Form) -> List Form
+lines : Float -> Float -> Float -> (Float -> C.Form -> C.Form) -> C.Path
+      -> (C.Path -> Int -> C.Form) -> List C.Form
 lines length unitWidth center move' line drawFun =
   let
     (firstLine, lastLine) = firstLastIndices length unitWidth center
@@ -50,7 +45,7 @@ lines length unitWidth center move' line drawFun =
   in
     List.map drawMove [firstLine..lastLine]
    
--- Careful: conventions for float being ' or no ' are reversed here
+{- Careful: conventions for float being ' or no ' are reversed here
 
 viewOneDim : Path -> ((Float, Float) -> Float) -> (Float -> Form -> Form)
              -> ViewType
@@ -79,16 +74,6 @@ type alias PlotFun =
 view : PlotFun -> Float -> Float -> Float -> Float -> Float -> Float -> Html.Html
 view plotFun centerX widthX centerY widthY width height =
   let
-    width' = round width
-    height' = round height
-    r = rect width height
-         |> filled backgroundColor
-    lineX = segment (0, -width/2) (0, width/2)
-    lineY = segment (-width/2, 0) (width/2, 0)
-    drawFun p _ = traced { defaultLine | color <- foregroundColor } p
-    linesX = lines width widthX centerX moveX lineX drawFun
-    linesY = lines height widthY centerY moveY lineY drawFun
-    plot = plotFun centerX widthX centerY widthY width height
   in
     Html.div
      [ Html.style <| whStyle width height
@@ -100,8 +85,25 @@ view plotFun centerX widthX centerY widthY width height =
 firstLastIndices : Float -> Float -> Float -> (Int, Int)
 firstLastIndices width unitWidth center =
  let
-   nLinesHalfWidth = (width / 2) / unitWidth
-   firstLine = floor <| -center - nLinesHalfWidth
-   lastLine = ceiling <| -center + nLinesHalfWidth
+   nLinesWidth = width / unitWidth
+   firstLine = floor <| -center
+   lastLine = ceiling <| -center + nLinesWidth
  in
    (firstLine, lastLine)
+
+bidimensional : String -> (Int, Int) -> LC.Model -> Task.Task String ()
+bidimensional id (width', height') model =
+  let
+    width = toFloat width'
+    height = toFloat height'
+    r = C.rect width height
+         |> C.filled backgroundColor
+         |> C.move (width/2, height/2)
+    lineX = C.segment (0, 0) (0, height)
+    lineY = C.segment (0, 0) (width, 0)
+    drawFun p _ = C.traced { defaultLine | color <- foregroundColor } p
+    linesX = lines width model.unitWidthX model.centerX C.moveX lineX drawFun
+    linesY = lines height model.unitWidthY model.centerY C.moveY lineY drawFun
+  in
+    TaskUtils.formsToDrawTask id (r::(linesX ++ linesY))
+      (model.unitWidthX, model.unitWidthY, model.centerX, model.centerY)
