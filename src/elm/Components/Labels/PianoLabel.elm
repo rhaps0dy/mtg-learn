@@ -21,15 +21,15 @@ foregroundColor = Color.white
 backgroundColor : Color.Color
 backgroundColor = Color.black
 
-a3OffsetNames : Array.Array String
-a3OffsetNames = Array.fromList
+noteNames : Array.Array String
+noteNames = Array.fromList
     ["A", "Bb", "B", "C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab"]
 
 
-a3OffsetToName : Int -> String
-a3OffsetToName n =
+centerToName : Int -> String
+centerToName n =
   let
-    (Just name) = Array.get (n%12) a3OffsetNames
+    (Just name) = Array.get (n%12) noteNames
     c4Offset = n - 3
     pitchIndex = (if c4Offset >= 0 then c4Offset else c4Offset - 11) // 12 + 4
   in
@@ -55,7 +55,7 @@ withoutNotes id (width', height') {centerY, unitWidthY} =
        |> C.filled foregroundColor
     -- We want the pitches to be centered on their rectangles, not at the bottom
     rectangles =
-      List.map (\i -> C.move (width/2, (toFloat i + 0.5 + centerY) * unitWidthY)
+      List.map (\i -> C.move (width/2, height - (toFloat i + centerY) * unitWidthY)
                 fgRect) (fgbgRectangles True lowestNote highestNote)
   in
     TaskUtils.formsToDrawTask id rectangles
@@ -63,7 +63,7 @@ withoutNotes id (width', height') {centerY, unitWidthY} =
 
 note : Float -> Color.Color -> Int -> C.Form
 note height color i =
-  Text.fromString (a3OffsetToName i)
+  Text.fromString (centerToName i)
    |> Text.height (min 14 (height-4))
    |> Text.color color
    |> C.text
@@ -77,11 +77,11 @@ withNotes id (width', height') {centerY, unitWidthY} =
       NL.firstLastIndices height unitWidthY centerY
     noteFg = note unitWidthY backgroundColor
     notesFg =
-      List.map (\i -> C.move (width/2, (toFloat i + 0.5 + centerY) * unitWidthY)
-                (noteFg i)) (fgbgRectangles True lowestNote highestNote)
+      List.map (\i -> C.move (width/2, height - (toFloat i + centerY) * unitWidthY)
+                (noteFg i)) (fgbgRectangles True (Debug.log "lowest" lowestNote) highestNote)
     noteBg = note unitWidthY foregroundColor
     notesBg =
-      List.map (\i -> C.move (width/2, (toFloat i + 0.5 + centerY) * unitWidthY)
+      List.map (\i -> C.move (width/2, height - (toFloat i + centerY) * unitWidthY)
                 (noteBg i)) (fgbgRectangles False lowestNote highestNote)
   in
     TaskUtils.formsToDrawTask id (notesFg ++ notesBg)

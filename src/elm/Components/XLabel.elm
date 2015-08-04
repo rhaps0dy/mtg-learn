@@ -14,16 +14,20 @@ import Html.Attributes as Html
 import Html.Events as Html
 import HtmlEvents as HEv
 import Debug
+import Color
+import ParseFiles
 
 import Components.Labels.NumLabel as NumLabel
 import Components.Labels.PianoLabel as PianoLabel
+import Components.Plots.PlotLine as PlotLine
+
 
 type alias Model = 
   { pitch : LC.Model
   , energy : LC.Model
-  , sheet : Maybe ParseFiles.Sheet
-  , descriptors : Maybe ParseFiles.Descriptors
-  , descriptorsLive : Maybe ParseFiles.Descriptors
+  , sheet : ParseFiles.Sheet
+  , descriptors : ParseFiles.Descriptors
+  , descriptorsLive : ParseFiles.Descriptors
   }
 
 type Action
@@ -31,14 +35,16 @@ type Action
   | Pitch LC.Action
   | Energy LC.Action
   | XLabel LC.Action
+  | Sheet ParseFiles.Sheet
+  | Descriptors ParseFiles.Descriptors
 
 init : Model
 init =
   { pitch = LC.init
   , energy = LC.init
-  , sheet = Nothing
-  , descriptors = Nothing
-  , descriptorsLive = Nothing
+  , sheet = ParseFiles.sheetInit
+  , descriptors = ParseFiles.descriptorsInit
+  , descriptorsLive = ParseFiles.descriptorsInit
   }
 
 update : Action -> Model -> Model
@@ -51,6 +57,10 @@ update action model =
     XLabel a ->
       { model | pitch <- LC.update a model.pitch
               , energy <- LC.update a model.energy }
+    Descriptors d ->
+      { model | descriptors <- d }
+    Sheet s ->
+      { model | sheet <- s }
     _ ->
       model
 
@@ -67,9 +77,18 @@ actionsXLabel = Signal.forwardTo actions.address XLabel
 actions : Signal.Mailbox Action
 actions = Signal.mailbox NoOp
 
+sheetMailbox = ParseFiles.sheetMailbox
+
+descriptorMailbox = ParseFiles.descriptorMailbox
+
 model : Signal Model
 model =
-  Signal.foldp update init actions.signal
+  Signal.foldp update init <|
+    Signal.mergeMany
+     [ actions.signal
+     , Sheet <~ sheetMailbox.signal
+     , Descriptors <~ descriptorMailbox.signal
+     ] 
 
 -- yLabelWidth is from $yLabel-width in style.scss
 yLabelWidth : Int
@@ -111,7 +130,8 @@ getNCompAndHeight height' vSelModel =
 
 -- | This view returns the needed Html and a function that given a Model returns a
 -- rendering Task.
-view : VSel.Model -> (Int, Int) -> (Html.Html, Html.Html, Model -> Task.Task String ())
+view : VSel.Model -> (Int, Int) ->
+       (Html.Html, Html.Html, Model -> Task.Task String ())
 view vSelModel (width, height) =
   let
     adjHeight' = toFloat (height - xLabelHeight)
@@ -165,6 +185,8 @@ view vSelModel (width, height) =
        , PianoLabel.withNotes "pitch-ylabel" yLabelSize m.pitch
 -- irrelevant which model we choose here, all have the same horizontal attributes
        , NumLabel.horizontal "horizontal-label" (width, xLabelHeight) m.energy
+       , PlotLine.plotBuffer Color.lightGreen "pitch-expert" panelSize
+           m.descriptors.pitch m.pitch
        ]
 
   in

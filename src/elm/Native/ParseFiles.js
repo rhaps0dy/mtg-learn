@@ -167,6 +167,7 @@ window.Elm.Native.ParseFiles.make = function(localRuntime) {
     , print: print
     , decodeAudioFile: decodeAudioFile
     , descriptors: descriptors
+    , emptyBuffer: [] 
     };
 };
 })(window, document);

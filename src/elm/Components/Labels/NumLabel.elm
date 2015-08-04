@@ -53,6 +53,10 @@ firstLastIndices width unitWidth center =
  in
    (firstLine, lastLine)
 
+moveY : Float -> Float -> C.Form -> C.Form
+moveY height offset form =
+  C.moveY (height-offset) form
+
 -- TODO: Reduce code duplication here
 bidimensional : LC.ViewFun
 bidimensional id (width', height') model =
@@ -61,8 +65,9 @@ bidimensional id (width', height') model =
     height = toFloat height'
     lineX = C.segment (0, 0) (0, height)
     lineY = C.segment (0, 0) (width, 0)
+    mvY = moveY height
     linesX = lines width model.unitWidthX model.centerX C.moveX lineX drawLine
-    linesY = lines height model.unitWidthY model.centerY C.moveY lineY drawLine
+    linesY = lines height model.unitWidthY model.centerY mvY lineY drawLine
   in
     TaskUtils.formsToDrawTask id (linesX ++ linesY)
       (model.unitWidthX, model.unitWidthY, model.centerX, model.centerY,
@@ -77,8 +82,9 @@ vertical id (width', height') model =
          |> C.filled backgroundColor
          |> C.move (width/2, height/2)
     lineY = C.segment (width-4, 0) (width, 0)
-    linesY = lines height model.unitWidthY model.centerY C.moveY lineY drawLine
-    numsY = lines height model.unitWidthY model.centerY C.moveY lineY
+    mvY = moveY height
+    linesY = lines height model.unitWidthY model.centerY mvY lineY drawLine
+    numsY = lines height model.unitWidthY model.centerY mvY lineY
       (\a b -> C.moveX (width/2) (drawNum a b))
   in
     TaskUtils.formsToDrawTask id (r::(linesY ++ numsY))

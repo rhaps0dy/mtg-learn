@@ -85,7 +85,7 @@ update action model =
             | centerX <- model.centerXMD +
                 toFloat (fst pos - fst model.mousePosMD)
                   / model.unitWidthX
-            , centerY <- model.centerYMD +
+            , centerY <- model.centerYMD -
                 toFloat (snd pos - snd model.mousePosMD)
                   / model.unitWidthY
             }
@@ -93,7 +93,7 @@ update action model =
           { model
             | unitWidthX <- model.unitWidthXMD +
                 toFloat (fst pos - fst model.mousePosMD) / 10
-            , unitWidthY <- model.unitWidthYMD +
+            , unitWidthY <- model.unitWidthYMD -
                 toFloat (snd pos - snd model.mousePosMD) / 10
             }
     _ -> model

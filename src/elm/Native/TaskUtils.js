@@ -32,15 +32,14 @@ window.Elm.Native.TaskUtils.make = function(localRuntime) {
   function formsToDrawTask(id, forms, checkCache) {
     return Task.asyncFunction(function(callback) {
       var cache = window.Elm.Native.TaskUtils._cache;
-      var ctx;
-      try {
-        ctx = document.getElementById(id).getContext('2d');
-      } catch (err) {
-        var errmsg = "Unable to get 2d context for id " + id;
-        console.error(errmsg);
+      var elem = document.getElementById(id);
+      if(!elem) {
+        var errmsg = "Unable to get element with id " + id;
+//        console.error(errmsg);
         callback(Task.fail(errmsg));
         return;
       }
+      var ctx = elem.getContext('2d');
       if(areEquals(cache[id], checkCache)) {
         callback(Task.succeed(Utils.Tuple0));
       } else {

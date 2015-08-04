@@ -18,20 +18,23 @@ window.Elm.Native.PlotLine.make = function(localRuntime) {
         ', ' + colorRGB.blue +
         ', ' + colorRGB.alpha + ')';
   return function(id) {
+  return function(size) {
+    var width = size._0;
+    var height = size._1;
   return function(values) {
-  return function(centerX) {
-  return function(centerY) {
-  return function(unitWidthX) {
-  return function(unitWidthY) {
-  return function(width) {
-  return function(height) {
+    console.log(values);
+  return function(model) {
+    var centerX = model.centerX;
+    var centerY = model.centerY;
+    var unitWidthX = model.unitWidthX;
+    var unitWidthY = model.unitWidthY;
+
     return Task.asyncFunction(function(callback) {
-      var ctx;
-      try {
-        ctx = document.getElementById(id).getContext('2d');
-      } catch(err) {
+      var elem = document.getElementById(id);
+      if(!elem) {
         return callback(Task.fail("element with id " + id + " not found"));
       }
+      var ctx = elem.getContext('2d');
       var imData = ctx.createImageData(width, height);
       var imBuf = imData.data;
       var res = A3(flind, width, unitWidthX, centerX);
@@ -48,10 +51,12 @@ window.Elm.Native.PlotLine.make = function(localRuntime) {
       ctx.lineWidth = 5;
       ctx.lineCap = 'round';
       ctx.beginPath();
+      for(var i=0; i<10; i++)
+        console.log(values[i]);
       for(var i=start; i < end; i++) {
         // plot the average of values within a pixel
-        var y = (-(values[i] + centerY) * unitWidthY + height/2)|0;
-        var x = ((i + centerX) * unitWidthX + width/2)|0;
+        var y = height - ((values[i] + centerY) * unitWidthY)|0;
+        var x = ((i + centerX) * unitWidthX)|0;
         if(prevY !== null && y !== null) {
           ctx.moveTo(x-unitWidthX, prevY);
           ctx.lineTo(x, y);
@@ -61,7 +66,7 @@ window.Elm.Native.PlotLine.make = function(localRuntime) {
       ctx.stroke();
       callback(Task.succeed(Utils.tuple0));
     });
-  }}}}}}}}}
+  }}}}}
 
   function areEquals(a, b) {
     if(typeof a === "object") {
