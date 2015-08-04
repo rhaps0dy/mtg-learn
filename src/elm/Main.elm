@@ -16,7 +16,6 @@ import Components.Labels.NumLabel
 import Components.Tray.SongSelecter as SongSelecter
 import Components.XLabel as XLabel
 import HtmlEvents exposing (disableContextMenu)
-
 import ParseFiles
 
 type Action
@@ -87,24 +86,16 @@ trayAddress = Signal.forwardTo actions.address Tray
 
 port audioAnalysisLoading : Signal Bool
 
-{- sheet : Signal.Mailbox ParseFiles.Sheet
-sheet = Signal.mailbox []
+sheet : Signal.Mailbox ParseFiles.Sheet
+sheet = ParseFiles.sheetMailbox
 
 port sheetFiles : Signal (Task String ())
 port sheetFiles =
   Signal.map (\t -> t `andThen` ParseFiles.sheet `andThen` Signal.send sheet.address)
    (Signal.dropRepeats (Signal.map (\m -> m.tray.songSelecter.sheetFile) model))
 
-plotPitchAnalysis : ParseFiles.Buffer -> Float -> Float -> Float -> Float
-                                      -> Int -> Int -> Task String ()
-plotPitchAnalysis = PlotLine.plotBuffer Color.lightBlue "pitch-canvas"
-
-bpm : Float
-bpm = 120
-
 -- COMPILER BUG: ParseFiles.descriptorMailbox.address cannot be found because
 -- 'The qualifier `ParseFiles.descriptorMailbox` is not in scope.'
-
 descriptorMailbox : Signal.Mailbox ParseFiles.Descriptors
 descriptorMailbox = ParseFiles.descriptorMailbox
 
@@ -115,22 +106,6 @@ port descriptorsFiles =
    ParseFiles.descriptors `andThen`
    Signal.send descriptorMailbox.address) <~
      Signal.dropRepeats ((\m -> m.tray.songSelecter.audioFile) <~ model)
-
-port drawDescriptors : Signal (Task String ())
-port drawDescriptors =
-  (\d bpm cx cy uwx uwy (w,h) ->
-   let
-     xFactor = 44100 / 4096 * 60 / bpm
-   in
-     plotPitchAnalysis d.pitch (cx * xFactor) cy (uwx / xFactor) uwy w h) <~
-      descriptorMailbox.signal ~
-      Signal.dropRepeats ((\m -> toFloat m.tray.playControls.bpm) <~ model) ~
-      Signal.dropRepeats ((\m -> m.xLabel.center) <~ model) ~
-      Signal.dropRepeats ((\m -> -m.yLabels.pitch.centerA3Offset) <~ model) ~
-      Signal.dropRepeats ((\m -> m.xLabel.unitWidth) <~ model) ~
-      Signal.dropRepeats ((\m -> m.yLabels.pitch.semitoneHeight) <~ model) ~
--- This should be width and componentH in XLabel
-      Window.dimensions -}
 
 -- Necessary port plumbing for Tray.viewFullscreenButton
 port fullscreen : Signal Bool

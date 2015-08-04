@@ -1,9 +1,11 @@
 module ParseFiles
   ( Sheet
   , sheet
+  , sheetMailbox
   , Descriptors
   , Buffer
   , descriptors
+  , descriptorMailbox
   , print
   , DecodedAudioBuffer
   , decodeAudioFile
@@ -29,6 +31,9 @@ type alias Descriptors =
 
 descriptorMailbox : Signal.Mailbox Descriptors
 descriptorMailbox = Signal.mailbox {pitch = Buffer, energy = Buffer}
+
+sheetMailbox : Signal.Mailbox Sheet
+sheetMailbox = Signal.mailbox []
 
 descriptors : DecodedAudioBuffer -> Task String Descriptors
 descriptors = Native.ParseFiles.descriptors
