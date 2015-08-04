@@ -41,10 +41,13 @@ update action model =
 
 
 
-view : Signal.Address Action -> Model -> (Int, Int) -> (Html, XLabel.Model -> Task String ())
+view : Signal.Address Action -> Model -> (Int, Int) ->
+       (Html, XLabel.Model -> Task String ())
 view address model (w, h) =
   let
-    (xLabels, yLabels, task) = XLabel.view model.tray.viewSelecter (w, h)
+    (xLabels, yLabels, task) =
+      XLabel.view model.tray.viewSelecter (toFloat model.tray.playControls.bpm)
+        (w, h)
     html =
       div
        [ class "fullscreen"

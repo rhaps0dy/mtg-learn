@@ -131,9 +131,9 @@ getNCompAndHeight height' vSelModel =
 
 -- | This view returns the needed Html and a function that given a Model returns a
 -- rendering Task.
-view : VSel.Model -> (Int, Int) ->
+view : VSel.Model -> Float -> (Int, Int) ->
        (Html.Html, Html.Html, Model -> Task.Task String ())
-view vSelModel (width, height) =
+view vSelModel bpm (width, height) =
   let
     adjHeight' = toFloat (height - xLabelHeight)
     (nComp, componentH') = getNCompAndHeight adjHeight' vSelModel
@@ -188,7 +188,7 @@ view vSelModel (width, height) =
        , NumLabel.horizontal "horizontal-label" (width, xLabelHeight) m.energy
        , PianoRoll.plot Color.red "pitch-pianoroll" panelSize
            m.sheet m.pitch
-       , PlotLine.plotBuffer Color.lightGreen "pitch-expert" panelSize
+       , PlotLine.plotBuffer Color.lightGreen "pitch-expert" panelSize bpm
            m.descriptors.pitch m.pitch
        ]
 

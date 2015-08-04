@@ -69,7 +69,7 @@ window.Elm.Native.ParseFiles.make = function(localRuntime) {
           var name = first_child_with_tag(p, "step").textContent;
           var octave = parseInt(first_child_with_tag(p, "octave").textContent);
           var pitch = a3Offset(name, octave);
-          var alter = first_child_with_tag(note, "alter");
+          var alter = first_child_with_tag(p, "alter");
           if(alter)
             pitch += parseInt(alter.textContent);
           notes.push({pitch: Maybe.Just(pitch), duration: duration});

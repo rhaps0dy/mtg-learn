@@ -8,6 +8,6 @@ import Color
 import Components.Labels.Common as LC
 import ParseFiles
 
-plotBuffer : Color.Color -> String -> (Int, Int) -> ParseFiles.Buffer ->
-             LC.Model -> Task.Task String ()
+plotBuffer : Color.Color -> String -> (Int, Int) -> Float ->
+             ParseFiles.Buffer -> LC.Model -> Task.Task String ()
 plotBuffer = Native.PlotLine.plotBuffer
