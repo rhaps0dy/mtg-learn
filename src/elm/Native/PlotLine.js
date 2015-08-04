@@ -30,11 +30,13 @@ window.Elm.Native.PlotLine.make = function(localRuntime) {
     var centerY = model.centerY;
     var unitWidthX = model.unitWidthX;
     var unitWidthY = model.unitWidthY;
+    var bpm = 65;
     if(cache.values === values &&
        cache.centerX === centerX &&
        cache.centerY === centerY &&
        cache.unitWidthX === unitWidthX &&
-       cache.unitWidthY === unitWidthY)
+       cache.unitWidthY === unitWidthY &&
+       cache.bpm === bpm)
     {
       return Task.asyncFunction(function(callback) {
         callback(Task.succeed(Utils.Tuple0));
@@ -46,6 +48,11 @@ window.Elm.Native.PlotLine.make = function(localRuntime) {
     cache.centerY = centerY;
     cache.unitWidthX = unitWidthX;
     cache.unitWidthY = unitWidthY;
+    cache.bpm = bpm;
+
+    var sampleSeconds = 2048 / 44100;
+    var beatSeconds = 60/4 / bpm;
+    var sampleWidth = unitWidthX / beatSeconds * sampleSeconds;
 
     return Task.asyncFunction(function(callback) {
       var elem = document.getElementById(id);
@@ -55,9 +62,8 @@ window.Elm.Native.PlotLine.make = function(localRuntime) {
       var ctx = elem.getContext('2d');
       var imData = ctx.createImageData(width, height);
       var imBuf = imData.data;
-      var res = A3(flind, width, unitWidthX, centerX);
-      var firstIndex = res._0;
-      var lastIndex = res._1;
+      var firstIndex = Math.floor(-centerX);
+      var lastIndex = Math.ceil(-centerX + width / (sampleWidth / unitWidthX));
       var res = A3(flind, height, unitWidthY, centerY);
       var firstY = res._0;
       var lastY = res._1;
@@ -72,9 +78,9 @@ window.Elm.Native.PlotLine.make = function(localRuntime) {
       for(var i=start; i < end; i++) {
         // plot the average of values within a pixel
         var y = height - ((values[i] + centerY) * unitWidthY)|0;
-        var x = ((i + centerX) * unitWidthX)|0;
+        var x = (i * sampleWidth + centerX * unitWidthX - unitWidthX / 4)|0;
         if(prevY !== null && y !== null) {
-          ctx.moveTo(x-unitWidthX, prevY);
+          ctx.moveTo(x-sampleWidth, prevY);
           ctx.lineTo(x, y);
         }
         prevY = y;

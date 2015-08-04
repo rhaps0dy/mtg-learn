@@ -20,6 +20,7 @@ import ParseFiles
 import Components.Labels.NumLabel as NumLabel
 import Components.Labels.PianoLabel as PianoLabel
 import Components.Plots.PlotLine as PlotLine
+import Components.Plots.PianoRoll as PianoRoll
 
 
 type alias Model = 
@@ -185,6 +186,8 @@ view vSelModel (width, height) =
        , PianoLabel.withNotes "pitch-ylabel" yLabelSize m.pitch
 -- irrelevant which model we choose here, all have the same horizontal attributes
        , NumLabel.horizontal "horizontal-label" (width, xLabelHeight) m.energy
+       , PianoRoll.plot Color.red "pitch-pianoroll" panelSize
+           m.sheet m.pitch
        , PlotLine.plotBuffer Color.lightGreen "pitch-expert" panelSize
            m.descriptors.pitch m.pitch
        ]

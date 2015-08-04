@@ -34,7 +34,7 @@ type Action
 init : Model
 init =
   { centerX = 0
-  , unitWidthX = 20
+  , unitWidthX = 60
   , centerXMD = 0
   , unitWidthXMD = 20
   , centerY = 0

@@ -60,7 +60,8 @@ window.Elm.Native.ParseFiles.make = function(localRuntime) {
       // Notes is an array we add notes to
       // note is an XML DOM node
       function parse_note(note, notes) {
-        var duration = parseFloat(first_child_with_tag(note, "duration").textContent);
+        // gives duration in eighths, we want it in fourths
+        var duration = parseFloat(first_child_with_tag(note, "duration").textContent) / 2;
         if(first_child_with_tag(note, "rest")) {
           notes.push({pitch: Maybe.Nothing, duration: duration});
         } else {

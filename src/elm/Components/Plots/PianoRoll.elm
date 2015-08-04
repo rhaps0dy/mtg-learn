@@ -2,10 +2,13 @@ module Components.Plots.PianoRoll
   ( plot
   ) where
 
-import ParseFiles as PF
+import ParseFiles
 import List
-import Graphics.Collage exposing (..)
-import Color exposing (..)
+import Graphics.Collage as C
+import Components.Labels.Common as LC
+import Color
+import TaskUtils
+import Task
 
 type alias Note =
   { start : Float
@@ -13,7 +16,7 @@ type alias Note =
   , pitch : Float
   }
 
-processRoll' : Float -> PF.Sheet -> List Note
+processRoll' : Float -> ParseFiles.Sheet -> List Note
 processRoll' currentBeat notes =
   case notes of
     [] -> []
@@ -26,18 +29,22 @@ processRoll' currentBeat notes =
                     } :: processRoll' (currentBeat + x.duration) xs
 
 
--- | Calculating what to draw is fast, but actually drawing it is not.
---   Consider optimising canvas draws with a Javascript task
-processRoll : PF.Sheet -> List Note
+-- This can be factored out of the drawing but there is much lower-hanging
+-- optimization fruit
+processRoll : ParseFiles.Sheet -> List Note
 processRoll = processRoll' 0
 
 
-plot : PF.Sheet -> Float -> Float -> Float -> Float -> Float -> Float -> List Form
-plot sheet centerX unitWidthX centerY unitWidthY _ _ =
+plot : Color.Color -> String -> (Int, Int) -> ParseFiles.Sheet ->
+       LC.Model -> Task.Task String ()
+plot color id size sheet {centerX, unitWidthX, centerY, unitWidthY} =
   let
     renderNote {start, duration, pitch} =
-      rect (duration*unitWidthX) unitWidthY
-       |> filled red
-       |> move ((centerX + start + duration/2) * unitWidthX, (pitch + centerY) * unitWidthY)
+      C.rect (duration*unitWidthX) unitWidthY
+       |> C.filled color
+       |> C.move ((centerX + start + duration/2) * unitWidthX
+                 , toFloat (snd size) - (pitch + centerY) * unitWidthY)
+    notes = List.map renderNote (processRoll sheet)
   in 
-    List.map renderNote (processRoll sheet)
+    TaskUtils.formsToDrawTask id notes
+      (centerX, unitWidthX, centerY, unitWidthY, size)
