@@ -64,7 +64,7 @@ withoutNotes id (width', height') {centerY, unitWidthY} =
 note : Float -> Color.Color -> Int -> C.Form
 note height color i =
   Text.fromString (a3OffsetToName i)
-   |> Text.height (min 14 (height-2))
+   |> Text.height (min 14 (height-4))
    |> Text.color color
    |> C.text
 
@@ -75,11 +75,11 @@ withNotes id (width', height') {centerY, unitWidthY} =
     height = toFloat height'
     (lowestNote, highestNote) =
       NL.firstLastIndices height unitWidthY centerY
-    noteFg = note height backgroundColor
+    noteFg = note unitWidthY backgroundColor
     notesFg =
       List.map (\i -> C.move (width/2, (toFloat i + 0.5 + centerY) * unitWidthY)
                 (noteFg i)) (fgbgRectangles True lowestNote highestNote)
-    noteBg = note height foregroundColor
+    noteBg = note unitWidthY foregroundColor
     notesBg =
       List.map (\i -> C.move (width/2, (toFloat i + 0.5 + centerY) * unitWidthY)
                 (noteBg i)) (fgbgRectangles False lowestNote highestNote)

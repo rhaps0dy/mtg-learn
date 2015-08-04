@@ -34,13 +34,13 @@ type Action
 init : Model
 init =
   { centerX = 0
-  , unitWidthX = 14
+  , unitWidthX = 20
   , centerXMD = 0
-  , unitWidthXMD = 14
+  , unitWidthXMD = 20
   , centerY = 0
-  , unitWidthY = 14
+  , unitWidthY = 20
   , centerYMD = 0
-  , unitWidthYMD = 14
+  , unitWidthYMD = 20
   , mousePosMD = (0, 0)
   , active = False
   , mouseDown = Nothing
