@@ -13,7 +13,6 @@ import Color
 import Array
 import Text
 import Signal
-import Debug
 
 foregroundColor : Color.Color
 foregroundColor = Color.white
@@ -78,7 +77,7 @@ withNotes id (width', height') {centerY, unitWidthY} =
     noteFg = note unitWidthY backgroundColor
     notesFg =
       List.map (\i -> C.move (width/2, height - (toFloat i + centerY) * unitWidthY)
-                (noteFg i)) (fgbgRectangles True (Debug.log "lowest" lowestNote) highestNote)
+                (noteFg i)) (fgbgRectangles True lowestNote highestNote)
     noteBg = note unitWidthY foregroundColor
     notesBg =
       List.map (\i -> C.move (width/2, height - (toFloat i + centerY) * unitWidthY)

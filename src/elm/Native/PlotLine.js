@@ -18,16 +18,34 @@ window.Elm.Native.PlotLine.make = function(localRuntime) {
         ', ' + colorRGB.blue +
         ', ' + colorRGB.alpha + ')';
   return function(id) {
+    window.Elm.Native.PlotLine._cache = window.Elm.Native.PlotLine._cache || {};
+    var cache = window.Elm.Native.PlotLine._cache[id] =
+                  window.Elm.Native.PlotLine._cache[id] || {};
   return function(size) {
     var width = size._0;
     var height = size._1;
   return function(values) {
-    console.log(values);
   return function(model) {
     var centerX = model.centerX;
     var centerY = model.centerY;
     var unitWidthX = model.unitWidthX;
     var unitWidthY = model.unitWidthY;
+    if(cache.values === values &&
+       cache.centerX === centerX &&
+       cache.centerY === centerY &&
+       cache.unitWidthX === unitWidthX &&
+       cache.unitWidthY === unitWidthY)
+    {
+      return Task.asyncFunction(function(callback) {
+        callback(Task.succeed(Utils.Tuple0));
+      });
+    }
+
+    cache.values = values;
+    cache.centerX = centerX;
+    cache.centerY = centerY;
+    cache.unitWidthX = unitWidthX;
+    cache.unitWidthY = unitWidthY;
 
     return Task.asyncFunction(function(callback) {
       var elem = document.getElementById(id);
@@ -51,8 +69,6 @@ window.Elm.Native.PlotLine.make = function(localRuntime) {
       ctx.lineWidth = 5;
       ctx.lineCap = 'round';
       ctx.beginPath();
-      for(var i=0; i<10; i++)
-        console.log(values[i]);
       for(var i=start; i < end; i++) {
         // plot the average of values within a pixel
         var y = height - ((values[i] + centerY) * unitWidthY)|0;
