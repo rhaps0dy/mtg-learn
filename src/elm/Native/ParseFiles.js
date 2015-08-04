@@ -149,7 +149,7 @@ window.Elm.Native.ParseFiles.make = function(localRuntime) {
 
       var pitches = [];
       for(var i=0; i<buffer.length; i+=BUF_LEN) {
-        Module.HEAPF32.set(buffer.slice(i, i+BUF_LEN), in_buf_idx);
+        Module.HEAPF32.set(buffer.subarray(i, i+BUF_LEN), in_buf_idx);
         Module._process()
         if(Module.HEAPF32[confidence_idx] < 0.8)
           pitches.push(null);
