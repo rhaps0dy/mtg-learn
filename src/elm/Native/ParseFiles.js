@@ -133,9 +133,9 @@ window.Elm.Native.ParseFiles.make = function(localRuntime) {
     });
   }
 
-  var logTwelvethRootTwo = Math.log(1.05946309435930);
+//  var logTwelvethRootTwo = Math.log(1.05946309435930);
   function freqToPitch(freq) {
-    return Math.log(freq/440) / logTwelvethRootTwo;
+    return 12 * Math.log2(freq/440);
   }
 
   function descriptors(buffer) {
