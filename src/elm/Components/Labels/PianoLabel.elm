@@ -54,11 +54,12 @@ withoutNotes id (width', height') {centerY, unitWidthY} =
        |> C.filled foregroundColor
     -- We want the pitches to be centered on their rectangles, not at the bottom
     rectangles =
-      List.map (\i -> C.move (width/2, height - (toFloat i + centerY) * unitWidthY)
-                fgRect) (fgbgRectangles True lowestNote highestNote)
+      List.map
+        (\i -> C.move (width/2, height - (toFloat i + centerY) * unitWidthY)
+          fgRect) (fgbgRectangles True lowestNote highestNote)
   in
-    TaskUtils.formsToDrawTask id rectangles
-      (centerY, unitWidthY, width', height')
+    TaskUtils.formsToDrawTask id rectangles width' height'
+      (centerY, unitWidthY)
 
 note : Float -> Color.Color -> Int -> C.Form
 note height color i =
@@ -76,12 +77,14 @@ withNotes id (width', height') {centerY, unitWidthY} =
       NL.firstLastIndices height unitWidthY centerY
     noteFg = note unitWidthY backgroundColor
     notesFg =
-      List.map (\i -> C.move (width/2, height - (toFloat i + centerY) * unitWidthY)
-                (noteFg i)) (fgbgRectangles True lowestNote highestNote)
+      List.map
+        (\i -> C.move (width/2, height - (toFloat i + centerY) * unitWidthY)
+          (noteFg i)) (fgbgRectangles True lowestNote highestNote)
     noteBg = note unitWidthY foregroundColor
     notesBg =
-      List.map (\i -> C.move (width/2, height - (toFloat i + centerY) * unitWidthY)
-                (noteBg i)) (fgbgRectangles False lowestNote highestNote)
+      List.map
+        (\i -> C.move (width/2, height - (toFloat i + centerY) * unitWidthY)
+          (noteBg i)) (fgbgRectangles False lowestNote highestNote)
   in
-    TaskUtils.formsToDrawTask id (notesFg ++ notesBg)
-      (centerY, unitWidthY, width', height')
+    TaskUtils.formsToDrawTask id (notesFg ++ notesBg) width' height'
+      (centerY, unitWidthY)

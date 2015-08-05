@@ -69,9 +69,8 @@ bidimensional id (width', height') model =
     linesX = lines width model.unitWidthX model.centerX C.moveX lineX drawLine
     linesY = lines height model.unitWidthY model.centerY mvY lineY drawLine
   in
-    TaskUtils.formsToDrawTask id (linesX ++ linesY)
-      (model.unitWidthX, model.unitWidthY, model.centerX, model.centerY,
-       width', height')
+    TaskUtils.formsToDrawTask id (linesX ++ linesY) width' height'
+      (model.unitWidthX, model.unitWidthY, model.centerX, model.centerY)
 
 vertical : LC.ViewFun
 vertical id (width', height') model =
@@ -87,8 +86,8 @@ vertical id (width', height') model =
     numsY = lines height model.unitWidthY model.centerY mvY lineY
       (\a b -> C.moveX (width/2) (drawNum a b))
   in
-    TaskUtils.formsToDrawTask id (r::(linesY ++ numsY))
-      (model.centerY, model.unitWidthY, width', height')
+    TaskUtils.formsToDrawTask id (r::(linesY ++ numsY)) width' height'
+      (model.centerY, model.unitWidthY)
 
 horizontal : LC.ViewFun
 horizontal id (width', height') model =
@@ -100,5 +99,5 @@ horizontal id (width', height') model =
     numsX = lines width model.unitWidthX model.centerX C.moveX lineX
       (\a b -> C.moveY (height/2) (drawNum a b))
   in
-    TaskUtils.formsToDrawTask id (linesX ++ numsX)
-      (model.centerX, model.unitWidthX, width', height')
+    TaskUtils.formsToDrawTask id (linesX ++ numsX) width' height'
+      (model.centerX, model.unitWidthX)

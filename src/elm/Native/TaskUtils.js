@@ -19,7 +19,9 @@ window.Elm.Native.TaskUtils.make = function(localRuntime) {
           if(!b.hasOwnProperty(k))
             return false;
         for(k in b)
-          if(!areEquals(a[k],b[k]))
+          // We do not want it to be recursive, comparing values at the top
+          // property level is enough
+          if(a[k] !== b[k])
             return false;
         return true;
       }
@@ -29,7 +31,7 @@ window.Elm.Native.TaskUtils.make = function(localRuntime) {
   }
 
   window.Elm.Native.TaskUtils._cache = window.Elm.Native.TaskUtils._cache || {};
-  function formsToDrawTask(id, forms, checkCache) {
+  function formsToDrawTask(id, forms, width, height, checkCache) {
     return Task.asyncFunction(function(callback) {
       var cache = window.Elm.Native.TaskUtils._cache;
       var elem = document.getElementById(id);
@@ -39,11 +41,15 @@ window.Elm.Native.TaskUtils.make = function(localRuntime) {
         callback(Task.fail(errmsg));
         return;
       }
+
       var ctx = elem.getContext('2d');
-      if(areEquals(cache[id], checkCache)) {
-        callback(Task.succeed(Utils.Tuple0));
-      } else {
-        cache[id] = checkCache;
+      function draw(maxRec) {
+	if(maxRec > 5) return;
+        if(elem.width !== width || elem.height !== height) {
+          // Canvas is going to be resized soon, we need to defer drawing
+          setTimeout(function(){draw(maxRec+1);}, 5);
+	  return;
+        }
         // We won't reach that screen size, right?
         ctx.clearRect(0, 0, 5000, 5000);
         var formStepper = Collage.formStepper(forms);
@@ -53,6 +59,15 @@ window.Elm.Native.TaskUtils.make = function(localRuntime) {
           Collage.renderForm(function(){}, ctx, f);
         }
         callback(Task.succeed(Utils.Tuple0));
+      }
+
+      checkCache.width = width;
+      checkCache.height = height;
+      if(areEquals(cache[id], checkCache)) {
+        callback(Task.succeed(Utils.Tuple0));
+      } else {
+        cache[id] = checkCache;
+        draw(0);
       }
     });
   }
@@ -69,7 +84,7 @@ window.Elm.Native.TaskUtils.make = function(localRuntime) {
   
 
   return localRuntime.Native.TaskUtils.values =
-    { formsToDrawTask: window.F3(formsToDrawTask)
+    { formsToDrawTask: window.F5(formsToDrawTask)
     , combineTasks: severalTasks
     };
 }
