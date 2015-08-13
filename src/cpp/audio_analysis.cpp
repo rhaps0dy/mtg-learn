@@ -1,5 +1,6 @@
 #include <iostream>
 #include <exception>
+#include <essentia/essentiautil.h>
 #include <essentia/algorithmfactory.h>
 #include <essentia/streaming/algorithms/poolstorage.h>
 #include <essentia/scheduler/network.h>
@@ -13,13 +14,10 @@ using namespace essentia::streaming;
 using namespace essentia::scheduler;
 
 #define IN_BUF_SIZE 4096
-#define OUT_BUF_SIZE 1
 
 // Real is typedef'd to float
 float in_buf[IN_BUF_SIZE];
 Network *network;
-float out_buf[OUT_BUF_SIZE];
-float confidence;
 
 void init_cpp();
 
@@ -28,12 +26,13 @@ extern "C" {
     float *in_buf_address() {
         return in_buf;
     }
-    float *out_buf_address() {
-        return out_buf;
-    }
-    float *confidence_address() {
-	return &confidence;
-    }
+
+#define OUTPUT(x) float x; float * x##_address () { return & x ; }
+    OUTPUT(pitch)
+    OUTPUT(energy)
+    OUTPUT(confidence)
+#undef OUTPUT
+
     void process() {
         network->runStep();
     }
@@ -114,6 +113,60 @@ class BufferWriter : public Algorithm {
 
 };
 
+template<typename T>
+class StreamFork : public Algorithm {
+  protected:
+    Sink<T> _input;
+    vector<Source<T> *> _outputs;
+  public:
+    StreamFork(int n) : Algorithm() {
+        setName("StreamFork");
+        declareInput(_input, "input", "the input to be copied to the N outputs");
+	char description[256];
+	char name[16];
+        for(int i=0; i<n; i++) {
+	    snprintf(name, 16, "out%d", i);
+	    snprintf(description, 256, "the %d'th output the input will be copied to", i);
+            _outputs.push_back(new Source<T>());
+            declareOutput(*_outputs[i], string(name), string(description));
+        }
+    }
+
+    ~StreamFork() {
+	for(auto out = _outputs.begin(); out != _outputs.end(); out++) {
+            delete *out;
+        }
+    }
+
+    AlgorithmStatus process() {
+	int nframes = min(_input.available(),
+                          _input.buffer().bufferInfo().maxContiguousElements);
+	nframes = max(nframes, 1);
+
+	if(!_input.acquire(nframes))
+	    return NO_INPUT;
+
+	for(auto out = _outputs.begin(); out != _outputs.end(); out++) {
+	    if((*out)->acquire(nframes))
+		return NO_OUTPUT;
+	    fastcopy(&(*out)->firstToken(), &_input.firstToken(), nframes);
+	    (*out)->release(nframes);
+	}
+
+	_input.release(nframes);
+        return OK;
+    }
+
+    void declareParameters() {
+    }
+
+    static const char* name;
+    static const char* description;
+
+    void configure() {
+    }
+};
+
 void init_cpp()
 {
     essentia::init();
@@ -129,19 +182,30 @@ void init_cpp()
                                             "frameSize", frameSize,
                                             "hopSize", hopSize,
                                             "silentFrames", "noise");
+    Algorithm *fork = new StreamFork<vector<Real> >(2);
+    Algorithm *rms = factory.create("RMS");
     Algorithm* windowing = factory.create("Windowing",
                                           "type", "hann");
     Algorithm *spectrum = factory.create("Spectrum");
     Algorithm *pitch = factory.create("PitchYinFFT");
-    Algorithm *out = new BufferWriter(out_buf, OUT_BUF_SIZE);
-    Algorithm *confWriter = new BufferWriter(&confidence, 1);
+
+#define WRITER(x) Algorithm * x##_writer = new BufferWriter(x##_address(), 1)
+    WRITER(pitch);
+    WRITER(confidence);
+    WRITER(energy);
+#undef WRITER
 
     inp->output("output") >> frameCutter->input("signal");
-    frameCutter->output("frame") >> windowing->input("frame");
+    frameCutter->output("frame") >> fork->input("input");
+
+    fork->output("out0") >> windowing->input("frame");
     windowing->output("frame") >> spectrum->input("frame");
     spectrum->output("spectrum") >> pitch->input("spectrum");
-    pitch->output("pitchConfidence") >> confWriter->input("input");
-    pitch->output("pitch") >> out->input("input");
+    pitch->output("pitchConfidence") >> confidence_writer->input("input");
+    pitch->output("pitch") >> pitch_writer->input("input");
+
+    fork->output("out1") >> rms->input("array");
+    rms->output("rms") >> energy_writer->input("input");
 
     network = new Network(inp);
     network->runPrepare();

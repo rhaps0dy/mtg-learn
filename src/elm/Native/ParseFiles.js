@@ -144,21 +144,24 @@ window.Elm.Native.ParseFiles.make = function(localRuntime) {
     return Task.asyncFunction(function(callback) {
       var Module = window.Module;
       var in_buf_idx = Module._in_buf_address() / 4;
-      var out_buf_idx = Module._out_buf_address() / 4;
+      var pitch_idx = Module._pitch_address() / 4;
       var confidence_idx = Module._confidence_address() / 4;
+      var energy_idx = Module._energy_address() / 4;
 
       var pitches = [];
+      var energies = [];
       for(var i=0; i<buffer.length; i+=BUF_LEN) {
         Module.HEAPF32.set(buffer.subarray(i, i+BUF_LEN), in_buf_idx);
         Module._process()
         if(Module.HEAPF32[confidence_idx] < 0.8)
           pitches.push(null);
         else
-          pitches.push(freqToPitch(Module.HEAPF32[out_buf_idx]));
+          pitches.push(freqToPitch(Module.HEAPF32[pitch_idx]));
+        energies.push(Module.HEAPF32[energy_idx]);
       }
       callback(Task.succeed(
         { pitch: pitches
-        , energy: []
+        , energy: energies
         }));
     });
   }
