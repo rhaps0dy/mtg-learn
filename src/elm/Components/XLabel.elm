@@ -132,7 +132,7 @@ getNCompAndHeight height' vSelModel =
 -- | This view returns the needed Html and a function that given a Model returns a
 -- rendering Task.
 view : VSel.Model -> Float -> (Int, Int) ->
-       (Html.Html, Html.Html, Model -> Task.Task String ())
+       (Html.Html, Html.Html, Model -> Task.Task String (List ()))
 view vSelModel bpm (width, height) =
   let
     adjHeight' = toFloat (height - xLabelHeight)
@@ -179,7 +179,7 @@ view vSelModel bpm (width, height) =
     panelSize = (width, componentH)
     yLabelSize = (yLabelWidth, componentH)
     drawTask m = 
-      TaskUtils.sequence
+      Task.sequence
        [ NumLabel.bidimensional "energy-label" panelSize m.energy
        , PianoLabel.withoutNotes "pitch-label" panelSize m.pitch
        , NumLabel.vertical "energy-ylabel" yLabelSize m.energy

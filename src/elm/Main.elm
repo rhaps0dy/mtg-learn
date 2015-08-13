@@ -42,7 +42,7 @@ update action model =
 
 
 view : Signal.Address Action -> Model -> (Int, Int) ->
-       (Html, XLabel.Model -> Task String ())
+       (Html, XLabel.Model -> Task String (List ()))
 view address model (w, h) =
   let
     (xLabels, yLabels, task) =
@@ -63,11 +63,11 @@ view address model (w, h) =
   in
     (html, task)
 
-viewDrawTask : Signal (Html, XLabel.Model -> Task String ())
+viewDrawTask : Signal (Html, XLabel.Model -> Task String (List ()))
 viewDrawTask =
   view actions.address <~ Signal.dropRepeats model ~ Window.dimensions
 
-port draw : Signal (Task String ())
+port draw : Signal (Task String (List ()))
 port draw = (\f x -> f x) <~ (snd <~ viewDrawTask) ~ XLabel.model
 
 main : Signal Html
