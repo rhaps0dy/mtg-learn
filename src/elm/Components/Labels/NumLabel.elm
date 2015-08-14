@@ -59,21 +59,21 @@ moveY height offset form =
 
 -- TODO: Reduce code duplication here
 bidimensional : LC.ViewFun
-bidimensional id (width', height') model =
+bidimensional id (width', height') xmodel ymodel =
   let
     width = toFloat width'
     height = toFloat height'
     lineX = C.segment (0, 0) (0, height)
     lineY = C.segment (0, 0) (width, 0)
     mvY = moveY height
-    linesX = lines width model.unitWidthX model.centerX C.moveX lineX drawLine
-    linesY = lines height model.unitWidthY model.centerY mvY lineY drawLine
+    linesX = lines width xmodel.unitWidthX xmodel.centerX C.moveX lineX drawLine
+    linesY = lines height ymodel.unitWidthY ymodel.centerY mvY lineY drawLine
   in
     TaskUtils.formsToDrawTask id (linesX ++ linesY) width' height'
-      (model.unitWidthX, model.unitWidthY, model.centerX, model.centerY)
+      (xmodel.unitWidthX, ymodel.unitWidthY, xmodel.centerX, ymodel.centerY)
 
 vertical : LC.ViewFun
-vertical id (width', height') model =
+vertical id (width', height') _ model =
   let
     width = toFloat width'
     height = toFloat height'
@@ -90,7 +90,7 @@ vertical id (width', height') model =
       (model.centerY, model.unitWidthY)
 
 horizontal : LC.ViewFun
-horizontal id (width', height') model =
+horizontal id (width', height') model _ =
   let
     width = toFloat width'
     height = toFloat height'

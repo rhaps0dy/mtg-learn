@@ -43,7 +43,7 @@ fgbgRectangles isForeground first last =
   List.filter (\i -> Array.get (i%12) whiteOffsets == Just isForeground) [first..last]
 
 withoutNotes : LC.ViewFun
-withoutNotes id (width', height') {centerY, unitWidthY} =
+withoutNotes id (width', height') _ {centerY, unitWidthY} =
   let
     width = toFloat width'
     height = toFloat height'
@@ -69,7 +69,7 @@ note height color i =
    |> C.text
 
 withNotes : LC.ViewFun
-withNotes id (width', height') {centerY, unitWidthY} =
+withNotes id (width', height') _ {centerY, unitWidthY} =
   let
     width = toFloat width'
     height = toFloat height'

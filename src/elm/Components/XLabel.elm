@@ -24,8 +24,9 @@ import Components.Plots.PianoRoll as PianoRoll
 
 
 type alias Model = 
-  { pitch : LC.Model
-  , energy : LC.Model
+  { pitch : LC.YModel
+  , energy : LC.YModel
+  , xModel : LC.XModel
   , sheet : ParseFiles.Sheet
   , descriptors : ParseFiles.Descriptors
   , descriptorsLive : ParseFiles.Descriptors
@@ -40,16 +41,17 @@ type Action
   | Descriptors ParseFiles.Descriptors
 
 -- COMPILER BUG
-lcinit : LC.Model
-lcinit = LC.init
+lcyInit : LC.YModel
+lcyInit = LC.yInit
 
 init : Model
 init =
-  { pitch = LC.init
-  , energy = { lcinit
+  { pitch = LC.yInit
+  , energy = { lcyInit
              | unitWidthY <- 300
              , centerY <- 0.3
              }
+  , xModel = LC.xInit
   , sheet = ParseFiles.sheetInit
   , descriptors = ParseFiles.descriptorsInit
   , descriptorsLive = ParseFiles.descriptorsInit
@@ -59,12 +61,16 @@ update : Action -> Model -> Model
 update action model =
   case action of
     Pitch a ->
-      { model | pitch <- LC.update a model.pitch }
+      { model | pitch <- LC.yUpdate a model.pitch
+              , xModel <- LC.xUpdate a model.xModel
+              }
     Energy a ->
-      { model | energy <- LC.update a model.energy }
+      { model | energy <- LC.yUpdate a model.energy
+              , xModel <- LC.xUpdate a model.xModel
+              }
     XLabel a ->
-      { model | pitch <- LC.update a model.pitch
-              , energy <- LC.update a model.energy }
+      { model | xModel <- LC.xUpdate a model.xModel
+              }
     Descriptors d ->
       { model | descriptors <- d }
     Sheet s ->
@@ -187,18 +193,18 @@ view vSelModel bpm (width, height) =
     yLabelSize = (yLabelWidth, componentH)
     drawTask m = 
       TaskUtils.sequence
-       [ NumLabel.bidimensional "energy-label" panelSize m.energy
-       , PianoLabel.withoutNotes "pitch-label" panelSize m.pitch
-       , NumLabel.vertical "energy-ylabel" yLabelSize m.energy
-       , PianoLabel.withNotes "pitch-ylabel" yLabelSize m.pitch
+       [ NumLabel.bidimensional "energy-label" panelSize m.xModel m.energy
+       , PianoLabel.withoutNotes "pitch-label" panelSize m.xModel m.pitch
+       , NumLabel.vertical "energy-ylabel" yLabelSize m.xModel m.energy
+       , PianoLabel.withNotes "pitch-ylabel" yLabelSize m.xModel m.pitch
 -- irrelevant which model we choose here, all have the same horizontal attributes
-       , NumLabel.horizontal "horizontal-label" (width, xLabelHeight) m.energy
+       , NumLabel.horizontal "horizontal-label" (width, xLabelHeight) m.xModel m.energy
        , PianoRoll.plot Color.red "pitch-pianoroll" panelSize
-           m.sheet m.pitch
+           m.sheet m.xModel m.pitch
        , PlotLine.plotBuffer Color.lightGreen "pitch-expert" panelSize bpm
-           m.descriptors.pitch m.pitch
+           m.descriptors.pitch m.xModel m.pitch
        , PlotLine.plotBuffer Color.lightBlue "energy-expert" panelSize bpm
-           m.descriptors.energy m.energy
+           m.descriptors.energy m.xModel m.energy
        ]
 
   in

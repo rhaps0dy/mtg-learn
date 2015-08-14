@@ -26,11 +26,12 @@ window.Elm.Native.PlotLine.make = function(localRuntime) {
     var height = size._1;
   return function(bpm) {
   return function(values) {
-  return function(model) {
-    var centerX = model.centerX;
-    var centerY = model.centerY;
-    var unitWidthX = model.unitWidthX;
-    var unitWidthY = model.unitWidthY;
+  return function(xmodel) {
+  return function(ymodel) {
+    var centerX = xmodel.centerX;
+    var centerY = ymodel.centerY;
+    var unitWidthX = xmodel.unitWidthX;
+    var unitWidthY = ymodel.unitWidthY;
     if(cache.values === values &&
        cache.centerX === centerX &&
        cache.centerY === centerY &&
@@ -88,7 +89,7 @@ window.Elm.Native.PlotLine.make = function(localRuntime) {
       ctx.stroke();
       callback(Task.succeed(Utils.tuple0));
     });
-  }}}}}}
+  }}}}}}}
 
   function areEquals(a, b) {
     if(typeof a === "object") {

@@ -36,8 +36,8 @@ processRoll = processRoll' 0
 
 
 plot : Color.Color -> String -> (Int, Int) -> ParseFiles.Sheet ->
-       LC.Model -> Task.Task String ()
-plot color id (width, height) sheet {centerX, unitWidthX, centerY, unitWidthY} =
+       LC.XModel -> LC.YModel -> Task.Task String ()
+plot color id (width, height) sheet {centerX, unitWidthX} {centerY, unitWidthY} =
   let
     renderNote {start, duration, pitch} =
       C.rect (duration*unitWidthX) unitWidthY
