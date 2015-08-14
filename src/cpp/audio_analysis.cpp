@@ -8,6 +8,7 @@
 #include <cstring>
 #include <cstdio>
 
+
 using namespace std;
 using namespace essentia;
 using namespace essentia::streaming;
@@ -121,14 +122,14 @@ class StreamFork : public Algorithm {
   public:
     StreamFork(int n) : Algorithm() {
         setName("StreamFork");
-        declareInput(_input, "input", "the input to be copied to the N outputs");
+        declareInput(_input, 1, "input", "the input to be copied to the N outputs");
 	char description[256];
 	char name[16];
         for(int i=0; i<n; i++) {
 	    snprintf(name, 16, "out%d", i);
 	    snprintf(description, 256, "the %d'th output the input will be copied to", i);
             _outputs.push_back(new Source<T>());
-            declareOutput(*_outputs[i], string(name), string(description));
+            declareOutput(*_outputs[i], 1, string(name), string(description));
         }
     }
 
@@ -139,21 +140,23 @@ class StreamFork : public Algorithm {
     }
 
     AlgorithmStatus process() {
-	int nframes = min(_input.available(),
-                          _input.buffer().bufferInfo().maxContiguousElements);
-	nframes = max(nframes, 1);
+        AlgorithmStatus status = acquireData();
+        if(status != OK) {
+            return NO_INPUT;
+        }
+        if(_input.available() == 0)
+            return NO_INPUT;
 
-	if(!_input.acquire(nframes))
-	    return NO_INPUT;
-
+        const vector<T> &its = _input.tokens();
+        int sz = its.size();
 	for(auto out = _outputs.begin(); out != _outputs.end(); out++) {
-	    if((*out)->acquire(nframes))
-		return NO_OUTPUT;
-	    fastcopy(&(*out)->firstToken(), &_input.firstToken(), nframes);
-	    (*out)->release(nframes);
-	}
+            vector<T> &ots = (*out)->tokens();
+            for(int i=0; i<sz; i++) {
+                ots[i] = its[i];
+            }
+        }
 
-	_input.release(nframes);
+        releaseData();
         return OK;
     }
 
