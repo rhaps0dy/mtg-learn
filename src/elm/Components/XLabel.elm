@@ -39,10 +39,17 @@ type Action
   | Sheet ParseFiles.Sheet
   | Descriptors ParseFiles.Descriptors
 
+-- COMPILER BUG
+lcinit : LC.Model
+lcinit = LC.init
+
 init : Model
 init =
   { pitch = LC.init
-  , energy = LC.init
+  , energy = { lcinit
+             | unitWidthY <- 300
+             , centerY <- 0.3
+             }
   , sheet = ParseFiles.sheetInit
   , descriptors = ParseFiles.descriptorsInit
   , descriptorsLive = ParseFiles.descriptorsInit
@@ -190,6 +197,8 @@ view vSelModel bpm (width, height) =
            m.sheet m.pitch
        , PlotLine.plotBuffer Color.lightGreen "pitch-expert" panelSize bpm
            m.descriptors.pitch m.pitch
+       , PlotLine.plotBuffer Color.lightBlue "energy-expert" panelSize bpm
+           m.descriptors.energy m.energy
        ]
 
   in
