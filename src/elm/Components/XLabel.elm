@@ -183,7 +183,10 @@ view vSelModel bpm (width, height) =
        [ Html.style <| whStyle width height
        , Html.class "main-canvases"
        ]
-       (canvas width xLabelH [("position", "absolute"), ("bottom", "0px")]
+       (canvas width xLabelH [ ("position", "absolute")
+                             , ("bottom", "0px")
+                             , ("overflow", "hidden")
+                             ]
            True "horizontal-label" (Just actionsXLabel)::xLabels)
     trayView =
       Html.div
