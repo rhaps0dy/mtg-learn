@@ -1,0 +1,22 @@
+--- elm-stuff/packages/elm-lang/core/2.1.0/src/Native/Graphics/Collage.js	2015-06-10 18:54:38.000000000 +0200
++++ elm-stuff/packages/elm-lang/core/2.1.0/src/Native/Graphics/Collage.js	2015-08-14 19:18:13.076610841 +0200
+@@ -10,8 +210,6 @@
+ 		var maxHeight = 0;
+ 		var numChunks = textChunks.length;
+ 
+-		ctx.scale(1,-1);
+-
+ 		for (var i = numChunks; i--; )
+ 		{
+ 			var chunk = textChunks[i];
+@@ -654,7 +652,9 @@
+ 	}
+ 
+ 	return localRuntime.Native.Graphics.Collage.values = {
+-		collage: F3(collage)
++		collage: F3(collage),
++		formStepper: formStepper,
++		renderForm: renderForm
+ 	};
+ 
+ };
