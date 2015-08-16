@@ -200,7 +200,6 @@ view vSelModel bpm (width, height) =
        , PianoLabel.withoutNotes "pitch-label" panelSize m.xModel m.pitch
        , NumLabel.vertical "energy-ylabel" yLabelSize m.xModel m.energy
        , PianoLabel.withNotes "pitch-ylabel" yLabelSize m.xModel m.pitch
--- irrelevant which model we choose here, all have the same horizontal attributes
        , NumLabel.horizontal "horizontal-label" (width, xLabelHeight) m.xModel m.energy
        , PianoRoll.plot Color.red "pitch-pianoroll" panelSize
            m.sheet m.xModel m.pitch
