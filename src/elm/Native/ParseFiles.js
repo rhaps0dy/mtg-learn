@@ -134,29 +134,20 @@ window.Elm.Native.ParseFiles.make = function(localRuntime) {
     });
   }
 
-//  var logTwelvethRootTwo = Math.log(1.05946309435930);
-  function freqToPitch(freq) {
-    return 12 * Math.log2(freq/440);
-  }
-
   function descriptors(buffer) {
-    var BUF_LEN = 4096;
+    var IN_BUF_LEN = 2048;
     return Task.asyncFunction(function(callback) {
       var Module = window.Module;
       var in_buf_idx = Module._in_buf_address() / 4;
-      var pitch_idx = Module._pitch_address() / 4;
-      var confidence_idx = Module._confidence_address() / 4;
-      var energy_idx = Module._energy_address() / 4;
+      var pitch_idx = Module._out_buf_address() / 4;
+      var energy_idx = pitch_idx + 1;
 
       var pitches = [];
       var energies = [];
-      for(var i=0; i<buffer.length; i+=BUF_LEN) {
-        Module.HEAPF32.set(buffer.subarray(i, i+BUF_LEN), in_buf_idx);
-        Module._process()
-        if(Module.HEAPF32[confidence_idx] < 0.8)
-          pitches.push(null);
-        else
-          pitches.push(freqToPitch(Module.HEAPF32[pitch_idx]));
+      for(var i=0; i<buffer.length; i+=IN_BUF_LEN) {
+        Module.HEAPF32.set(buffer.subarray(i, i+IN_BUF_LEN), in_buf_idx);
+        Module._process(0);
+	pitches.push(Module.HEAPF32[pitch_idx]);
         energies.push(Module.HEAPF32[energy_idx]);
       }
       callback(Task.succeed(

@@ -7,42 +7,46 @@
 #include <cstdlib>
 #include <cstring>
 #include <cstdio>
-
+#include <cmath>
 
 using namespace std;
 using namespace essentia;
 using namespace essentia::streaming;
 using namespace essentia::scheduler;
 
-#define IN_BUF_SIZE 4096
+#define IN_BUF_SIZE 2048
+#define N_DESCRIPTORS 2
+#define N_PROCESSING_STREAMS 2
 
 // Real is typedef'd to float
-float in_buf[IN_BUF_SIZE];
-Network *network;
+float in_buf[N_PROCESSING_STREAMS * IN_BUF_SIZE];
+float out_buf[N_PROCESSING_STREAMS * N_DESCRIPTORS];
+Network *networks[N_PROCESSING_STREAMS];
 
-void init_cpp();
+void init_cpp(Network **network, Real *input_addr, Real *out_addr);
 
 // These functions will be exported to use by javascript.
 extern "C" {
-    float *in_buf_address() {
-        return in_buf;
+    float *in_buf_address(int index_processing_stream) {
+        return in_buf + index_processing_stream * IN_BUF_SIZE;
     }
 
-#define OUTPUT(x) float x; float * x##_address () { return & x ; }
-    OUTPUT(pitch)
-    OUTPUT(energy)
-    OUTPUT(confidence)
-#undef OUTPUT
+    float *out_buf_address(int index_processing_stream) {
+        return out_buf + index_processing_stream * N_DESCRIPTORS;
+    }
 
-    void process() {
-        network->runStep();
+    void process(int index_processing_stream) {
+        networks[index_processing_stream]->runStep();
     }
     void init() {
-        init_cpp();
+        essentia::init();
+	for(int i=0; i<N_PROCESSING_STREAMS; i++)
+            init_cpp(&networks[i], in_buf_address(i), out_buf_address(i));
     }
     void quit() {
         essentia::shutdown();
-        delete network;
+	for(int i=0; i<N_PROCESSING_STREAMS; i++)
+          delete networks[i];
     }
 }
 
@@ -170,33 +174,82 @@ class StreamFork : public Algorithm {
     }
 };
 
-void init_cpp()
-{
-    essentia::init();
+class PostProcessor : public Algorithm {
+  protected:
+    Sink<Real> _in_pitch;
+    Sink<Real> _in_pitch_confidence;
+    Sink<Real> _in_energy;
+    Source<Real> _out_pitch;
+    Source<Real> _out_energy;
+  public:
+    PostProcessor() : Algorithm() {
+        setName("PostProcessor");
+#define DECL_IN(what) declareInput(_in_##what, 1, #what, "the " #what " to process")
+	DECL_IN(pitch);
+	DECL_IN(pitch_confidence);
+	DECL_IN(energy);
+#undef DECL_IN
+#define DECL_OUT(what) declareOutput(_out_##what, 1, #what, "the processed " #what)
+	DECL_OUT(pitch);
+	DECL_OUT(energy);
+#undef DECL_OUT
+    }
 
+    AlgorithmStatus process() {
+        AlgorithmStatus status = acquireData();
+        if(status != OK) {
+            return NO_INPUT;
+        }
+
+	Real pitch = 12 * log2(_in_pitch.tokens()[0] / 440.);
+
+	if(_in_pitch_confidence.tokens()[0] < 0.8)
+	    _out_pitch.tokens()[0] = 0;
+	else
+	    _out_pitch.tokens()[0] = pitch;
+
+	_out_energy.tokens()[0] = _in_energy.tokens()[0];
+
+        releaseData();
+        return OK;
+    }
+
+    void declareParameters() {
+    }
+
+    static const char* name;
+    static const char* description;
+
+    void configure() {
+    }
+};
+
+// By altering the input parameters to this function, you can make N analyzing
+// networks which are independent from each other.
+void init_cpp(Network **network, Real *input_addr, Real *out_addr)
+{
     Real sampleRate = 44100.0;
     int hopSize = IN_BUF_SIZE;
-    int frameSize = hopSize * 2;
+    int frameSize = 4096;
 
     // audio -> frameCutter -> Spectrum -> PitchYinFFT
     AlgorithmFactory &factory = streaming::AlgorithmFactory::instance();
-    Algorithm *inp = new BufferReader(in_buf, IN_BUF_SIZE);
+    Algorithm *inp = new BufferReader(input_addr, IN_BUF_SIZE);
     Algorithm *frameCutter = factory.create("FrameCutter",
                                             "frameSize", frameSize,
                                             "hopSize", hopSize,
                                             "silentFrames", "noise");
     Algorithm *fork = new StreamFork<vector<Real> >(2);
     Algorithm *rms = factory.create("RMS");
-    Algorithm* windowing = factory.create("Windowing",
+    Algorithm *windowing = factory.create("Windowing",
                                           "type", "hann");
     Algorithm *spectrum = factory.create("Spectrum");
     Algorithm *pitch = factory.create("PitchYinFFT");
 
-#define WRITER(x) Algorithm * x##_writer = new BufferWriter(x##_address(), 1)
-    WRITER(pitch);
-    WRITER(confidence);
-    WRITER(energy);
-#undef WRITER
+    Algorithm *post_process = new PostProcessor();
+
+    Algorithm *pitch_writer = new BufferWriter(&out_addr[0], 1);
+    Algorithm *energy_writer = new BufferWriter(&out_addr[1], 1);
 
     inp->output("output") >> frameCutter->input("signal");
     frameCutter->output("frame") >> fork->input("input");
@@ -204,19 +257,25 @@ void init_cpp()
     fork->output("out0") >> windowing->input("frame");
     windowing->output("frame") >> spectrum->input("frame");
     spectrum->output("spectrum") >> pitch->input("spectrum");
-    pitch->output("pitchConfidence") >> confidence_writer->input("input");
-    pitch->output("pitch") >> pitch_writer->input("input");
+    pitch->output("pitchConfidence") >> post_process->input("pitch_confidence");
+    pitch->output("pitch") >> post_process->input("pitch");
 
     fork->output("out1") >> rms->input("array");
-    rms->output("rms") >> energy_writer->input("input");
+    rms->output("rms") >> post_process->input("energy");
 
-    network = new Network(inp);
-    network->runPrepare();
+    post_process->output("pitch") >> pitch_writer->input("input");
+    post_process->output("energy") >> energy_writer->input("input");
+
+    *network = new Network(inp);
+    (*network)->runPrepare();
 }
 
 int main() {
-    init_cpp();
+    essentia::init();
+    init_cpp(&networks[0], in_buf_address(0), out_buf_address(0));
     for(int i=0; i<12; i++)
-        network->runStep();
+        networks[0]->runStep();
+    essentia::shutdown();
+    delete networks[0];
     return 0;
 }

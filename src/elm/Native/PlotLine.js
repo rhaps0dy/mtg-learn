@@ -52,7 +52,7 @@ window.Elm.Native.PlotLine.make = function(localRuntime) {
     cache.bpm = bpm;
 
     var sampleSeconds = 2048 / 44100;
-    var beatSeconds = 60/4 / bpm;
+    var beatSeconds = 60/2 / bpm; // Every beat in the sheet is an eighth note
     var sampleWidth = unitWidthX / beatSeconds * sampleSeconds;
 
     return Task.asyncFunction(function(callback) {

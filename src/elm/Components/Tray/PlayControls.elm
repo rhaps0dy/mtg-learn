@@ -96,8 +96,8 @@ view address model =
       ] ++ if model.micRecording then [] else [
         div [ class "alert alert-danger" ]
          [ text """Please activate the microphone. Make sure it has no
-             filters on it. On Firefox, set
-	     \"media.getusermedia.aec_enabled\" to false in about:config."""
+             filters on it. On Firefox, set \"media.getusermedia.aec_enabled\"
+             to false in about:config."""
          ]
       ])
    ]
