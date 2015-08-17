@@ -10,6 +10,13 @@ window.Elm.Native.PlotLine.make = function(localRuntime) {
   var Color = Elm.Color.make(localRuntime);
   var flind = Elm.Components.Labels.NumLabel.make(localRuntime).firstLastIndices;
 
+
+  function calcSampleWidth(bpm, unitWidthX) {
+    var sampleSeconds = 2048 / 44100;
+    var beatSeconds = 60/2 / bpm; // Every beat in the sheet is an eighth note
+    return unitWidthX / beatSeconds * sampleSeconds;
+  }
+
   // This function could be curried, and the part extracting color precalculated
   function plot(color) {
     var colorRGB = Color.toRgb(color);
@@ -51,9 +58,7 @@ window.Elm.Native.PlotLine.make = function(localRuntime) {
     cache.unitWidthY = unitWidthY;
     cache.bpm = bpm;
 
-    var sampleSeconds = 2048 / 44100;
-    var beatSeconds = 60/2 / bpm; // Every beat in the sheet is an eighth note
-    var sampleWidth = unitWidthX / beatSeconds * sampleSeconds;
+    var sampleWidth = calcSampleWidth(bpm, unitWidthX);
 
     return Task.asyncFunction(function(callback) {
       var elem = document.getElementById(id);
@@ -109,8 +114,24 @@ window.Elm.Native.PlotLine.make = function(localRuntime) {
     }
   }
 
+  function moveLine(id, bpm, time, xModel) {
+    return Task.asyncFunction(function(callback) {
+      var sampleWidth = calcSampleWidth(bpm, xModel.unitWidthX);
+      var x = xModel.centerX * xModel.unitWidthX + sampleWidth * time;
+      var elem = document.getElementById(id);
+      if(elem) {
+        elem.style.left = (x - 1) + "px";
+        callback(Task.succeed(Utils.Tuple0));
+      } else {
+        console.error("Element " + id + " does not exist");
+        callback(Task.fail("Element " + id + " does not exist"));
+      }
+    });
+  }
 
   return localRuntime.Native.PlotLine.values =
     { plotBuffer: plot
+    , moveLine: F4(moveLine)
+    , sampleWidth: F2(calcSampleWidth)
     };
 };

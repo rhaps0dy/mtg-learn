@@ -5,9 +5,12 @@ module ParseFiles
   , sheetInit
   , Descriptors
   , DescriptorsOne
+  , descriptorsAssign
+  , micDescriptorsMailbox
   , Buffer
   , descriptors
   , descriptorsInit
+  , descriptorsLiveInit
   , descriptorMailbox
   , print
   , DecodedAudioBuffer
@@ -32,10 +35,14 @@ type alias Descriptors =
   , energy : Buffer
   }
 
+
 type alias DescriptorsOne =
   { pitch : Float
   , energy : Float
   }
+
+micDescriptorsMailbox : Signal.Mailbox DescriptorsOne
+micDescriptorsMailbox = Signal.mailbox {pitch = 0, energy = 0}
 
 descriptorMailbox : Signal.Mailbox Descriptors
 descriptorMailbox = Signal.mailbox descriptorsInit
@@ -54,11 +61,23 @@ type DecodedAudioBuffer = DecodedAudioBuffer
 decodeAudioFile : File -> Task String DecodedAudioBuffer
 decodeAudioFile = Native.ParseFiles.decodeAudioFile
 
+-- We want references to different arrays
 descriptorsInit : Descriptors
 descriptorsInit =
-  { pitch = Native.ParseFiles.emptyBuffer
-  , energy = Native.ParseFiles.emptyBuffer
+  { pitch = Native.ParseFiles.emptyBuffer ()
+  , energy = Native.ParseFiles.emptyBuffer ()
+  }
+
+descriptorsLiveInit : Descriptors
+descriptorsLiveInit =
+  { pitch = Native.ParseFiles.emptyBuffer ()
+  , energy = Native.ParseFiles.emptyBuffer ()
   }
 
 sheetInit : Sheet
 sheetInit = []
+
+-- Careful : this function modifies the passed Descriptors
+-- so don't rely on references to old data
+descriptorsAssign : Int -> DescriptorsOne -> Descriptors -> Descriptors
+descriptorsAssign = Native.ParseFiles.descriptorsAssign

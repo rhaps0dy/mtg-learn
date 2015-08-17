@@ -30,6 +30,9 @@ type alias Model =
   , sheet : ParseFiles.Sheet
   , descriptors : ParseFiles.Descriptors
   , descriptorsLive : ParseFiles.Descriptors
+-- We use Int and not Time.Time because we represent the time as the current
+-- sample we are writing on.
+  , time : Int
   }
 
 type Action
@@ -39,6 +42,7 @@ type Action
   | XLabel LC.Action
   | Sheet ParseFiles.Sheet
   | Descriptors ParseFiles.Descriptors
+  | MicDescriptors ParseFiles.DescriptorsOne
 
 -- COMPILER BUG
 lcyInit : LC.YModel
@@ -54,7 +58,8 @@ init =
   , xModel = LC.xInit
   , sheet = ParseFiles.sheetInit
   , descriptors = ParseFiles.descriptorsInit
-  , descriptorsLive = ParseFiles.descriptorsInit
+  , descriptorsLive = ParseFiles.descriptorsLiveInit
+  , time = 0
   }
 
 update : Action -> Model -> Model
@@ -75,6 +80,13 @@ update action model =
       { model | descriptors <- d }
     Sheet s ->
       { model | sheet <- s }
+    MicDescriptors d ->
+      { model | descriptorsLive <-
+                  -- Careful : this function modifies the passed Descriptors
+                  -- so don't rely on references to old data
+                  ParseFiles.descriptorsAssign model.time d model.descriptorsLive
+              , time <- model.time + 1
+              }
     _ ->
       model
 
@@ -95,6 +107,8 @@ sheetMailbox = ParseFiles.sheetMailbox
 
 descriptorMailbox = ParseFiles.descriptorMailbox
 
+micDescriptorsMailbox = ParseFiles.micDescriptorsMailbox
+
 model : Signal Model
 model =
   Signal.foldp update init <|
@@ -102,6 +116,7 @@ model =
      [ actions.signal
      , Sheet <~ sheetMailbox.signal
      , Descriptors <~ descriptorMailbox.signal
+     , MicDescriptors <~ micDescriptorsMailbox.signal
      ] 
 
 -- yLabelWidth is from $yLabel-width in style.scss
@@ -183,11 +198,22 @@ view vSelModel bpm (width, height) =
        [ Html.style <| whStyle width height
        , Html.class "main-canvases"
        ]
-       (canvas width xLabelH [ ("position", "absolute")
+       ([canvas width xLabelH [ ("position", "absolute")
                              , ("bottom", "0px")
                              , ("overflow", "hidden")
                              ]
-           True "horizontal-label" (Just actionsXLabel)::xLabels)
+           True "horizontal-label" (Just actionsXLabel)
+-- Time cursor, moved by a draw task
+       , Html.div
+          [ Html.id "time-cursor"
+          , Html.style <|
+             [("position", "absolute")
+             ,("background-color", "yellow")
+             ,("top", "0px")
+             ,("cursor", "ew-resize")
+             ] ++ whStyle 2 height
+          ] []
+       ] ++ xLabels)
     trayView =
       Html.div
        [ Html.style <| ("position", "absolute")::whStyle yLabelWidth height
@@ -207,7 +233,7 @@ view vSelModel bpm (width, height) =
            m.descriptors.pitch m.xModel m.pitch
        , PlotLine.plotBuffer Color.lightBlue "energy-expert" panelSize bpm
            m.descriptors.energy m.xModel m.energy
+       , PlotLine.moveLine "time-cursor" bpm m.time m.xModel
        ]
-
   in
     (mainView, trayView, drawTask)

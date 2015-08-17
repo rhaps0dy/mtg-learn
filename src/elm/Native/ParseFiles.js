@@ -157,12 +157,28 @@ window.Elm.Native.ParseFiles.make = function(localRuntime) {
     });
   }
 
+  function assert(condition, message) {
+    if(!condition)
+      throw new Error(message || "Assertion failed");
+  }
+
+  function descriptorsAssign(idx, descriptorsOne, descriptors) {
+    assert(idx >= 0);
+    assert(idx < descriptors.pitch.length + 1);
+    for(desc in descriptors) {
+      descriptors[desc].length = idx + 1;
+      descriptors[desc][idx] = descriptorsOne[desc];
+    }
+    return descriptors;
+  }
+
   return localRuntime.Native.ParseFiles.values =
     { sheet: sheet
     , print: print
     , decodeAudioFile: decodeAudioFile
     , descriptors: descriptors
-    , emptyBuffer: [] 
+    , emptyBuffer: function(){return [];}
+    , descriptorsAssign: window.F3(descriptorsAssign)
     };
 };
 })(window, document);
