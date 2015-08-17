@@ -82,8 +82,6 @@ update action model =
       { model | sheet <- s }
     MicDescriptors d ->
       { model | descriptorsLive <-
-                  -- Careful : this function modifies the passed Descriptors
-                  -- so don't rely on references to old data
                   ParseFiles.descriptorsAssign model.time d model.descriptorsLive
               , time <- model.time + 1
               }
@@ -234,6 +232,10 @@ view vSelModel bpm (width, height) =
        , PlotLine.plotBuffer Color.lightBlue "energy-expert" panelSize bpm
            m.descriptors.energy m.xModel m.energy
        , PlotLine.moveLine "time-cursor" bpm m.time m.xModel
+       , PlotLine.plotBuffer Color.darkGreen "pitch-live" panelSize bpm
+           m.descriptorsLive.pitch m.xModel m.pitch
+       , PlotLine.plotBuffer Color.darkBlue "energy-live" panelSize bpm
+           m.descriptorsLive.energy m.xModel m.energy
        ]
   in
     (mainView, trayView, drawTask)

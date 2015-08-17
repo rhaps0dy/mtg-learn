@@ -108,7 +108,7 @@ var elm_app = Elm.fullscreen(Elm.Main,
             window.Module._process(1);
             var r = {
               pitch: Module.HEAPF32[pitch_idx],
-              energy: Module.HEAPF32[pitch_idx]
+              energy: Module.HEAPF32[energy_idx]
             };
             elm_app.ports.micDescriptors.send(r);
           };

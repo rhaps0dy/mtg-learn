@@ -162,14 +162,19 @@ window.Elm.Native.ParseFiles.make = function(localRuntime) {
       throw new Error(message || "Assertion failed");
   }
 
+  var descNames = ["pitch", "energy"];
   function descriptorsAssign(idx, descriptorsOne, descriptors) {
     assert(idx >= 0);
     assert(idx < descriptors.pitch.length + 1);
-    for(desc in descriptors) {
-      descriptors[desc].length = idx + 1;
-      descriptors[desc][idx] = descriptorsOne[desc];
+    var newDesc = {};
+    for(var i=0; i<descNames.length; i++) {
+      // idx is the same as the array length
+      var desc = descNames[i];
+      // copy the array
+      newDesc[desc] = descriptors[desc].slice();
+      newDesc[desc].push(descriptorsOne[desc]);
     }
-    return descriptors;
+    return newDesc;
   }
 
   return localRuntime.Native.ParseFiles.values =
@@ -177,7 +182,7 @@ window.Elm.Native.ParseFiles.make = function(localRuntime) {
     , print: print
     , decodeAudioFile: decodeAudioFile
     , descriptors: descriptors
-    , emptyBuffer: function(){return [];}
+    , emptyBuffer: function(){return new Array();}
     , descriptorsAssign: window.F3(descriptorsAssign)
     };
 };

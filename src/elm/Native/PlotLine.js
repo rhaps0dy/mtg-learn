@@ -39,7 +39,9 @@ window.Elm.Native.PlotLine.make = function(localRuntime) {
     var centerY = ymodel.centerY;
     var unitWidthX = xmodel.unitWidthX;
     var unitWidthY = ymodel.unitWidthY;
+    cache.values = cache.values || {};
     if(cache.values === values &&
+       cache.values.length === values.length &&
        cache.centerX === centerX &&
        cache.centerY === centerY &&
        cache.unitWidthX === unitWidthX &&
@@ -50,6 +52,8 @@ window.Elm.Native.PlotLine.make = function(localRuntime) {
         callback(Task.succeed(Utils.Tuple0));
       });
     }
+
+    var drawOnlyLast = cache.values.length + 1 === values.length;
 
     cache.values = values;
     cache.centerX = centerX;
@@ -73,25 +77,31 @@ window.Elm.Native.PlotLine.make = function(localRuntime) {
       var res = A3(flind, height, unitWidthY, centerY);
       var firstY = res._0;
       var lastY = res._1;
-      var start = Math.max(firstIndex, 0);
-      var end = Math.min(values.length, lastIndex);
-      var prevY = null;
-      ctx.clearRect(0, 0, width, height);
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 5;
-      ctx.lineCap = 'round';
-      ctx.beginPath();
+      var start, end;
+      ctx.fillStyle = color;
+      if(drawOnlyLast) {
+        var ind = values.length - 1;
+        if(ind >= firstIndex && ind < lastIndex) {
+          start = ind;
+          end = ind + 1;
+        } else {
+          // don't draw anything
+          start = end = 0;
+        }
+      } else {
+        start = Math.max(firstIndex, 0);
+        end = Math.min(values.length, lastIndex);
+        ctx.clearRect(0, 0, width, height);
+      }
       for(var i=start; i < end; i++) {
         // plot the average of values within a pixel
-        var y = height - ((values[i] + centerY) * unitWidthY)|0;
-        var x = (i * sampleWidth + centerX * unitWidthX - unitWidthX / 4)|0;
-        if(prevY !== null && y !== null) {
-          ctx.moveTo(x-sampleWidth, prevY);
-          ctx.lineTo(x, y);
+        var value = values[i];
+        if(!isNaN(value)) {
+          var y = height - ((value + centerY) * unitWidthY)|0;
+          var x = (i * sampleWidth + centerX * unitWidthX - unitWidthX / 4)|0;
+          ctx.fillRect(x - sampleWidth, y-2, sampleWidth, 4);
         }
-        prevY = y;
       }
-      ctx.stroke();
       callback(Task.succeed(Utils.tuple0));
     });
   }}}}}}}

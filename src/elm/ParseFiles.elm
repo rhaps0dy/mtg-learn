@@ -77,7 +77,5 @@ descriptorsLiveInit =
 sheetInit : Sheet
 sheetInit = []
 
--- Careful : this function modifies the passed Descriptors
--- so don't rely on references to old data
 descriptorsAssign : Int -> DescriptorsOne -> Descriptors -> Descriptors
 descriptorsAssign = Native.ParseFiles.descriptorsAssign
