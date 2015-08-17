@@ -1,4 +1,4 @@
-module Components.Tray.PlayControls (Model, init, Action, update, view) where
+module Components.Tray.PlayControls (Model, init, Action(MicRecording), update, view) where
 
 import Html as Html exposing (..)
 import Html.Attributes as Attr exposing (..)
@@ -13,6 +13,7 @@ type alias Model =
   { playing : Bool
   , metronome : Bool
   , bpm : Int
+  , micRecording : Bool
   }
 
 init : Model
@@ -20,6 +21,7 @@ init =
   { playing = False
   , metronome = False
   , bpm = 120
+  , micRecording = False
   }
 
 type Action
@@ -30,6 +32,7 @@ type Action
   | GetScore
   | ChangeBPM Int
   | Metronome Bool
+  | MicRecording Bool
 
 update : Action -> Model -> Model
 update action model =
@@ -37,13 +40,14 @@ update action model =
    TogglePlaying -> { model | playing <- not model.playing }
    ChangeBPM bpm -> { model | bpm <- bpm }
    Metronome b -> { model | metronome <- b }
+   MicRecording b -> { model | micRecording <- b }
    _ -> model
 
 view : Signal.Address Action -> Model -> Html
 view address model =
   div [ class "control-panel" ]
    [ div [ class "clearfix" ]
-      [ div [ class "form-group" ]
+      ([ div [ class "form-group" ]
          [ div [ class "input-group" ]
             [ span
                [ class "input-group-addon"
@@ -54,7 +58,7 @@ view address model =
                , id "bpm-value"
                , type' "number"
                , value (toString model.bpm)
-               , onChange address (ChangeBPM << (\(Ok i) -> i) << String.toInt)
+               , onChange address (ChangeBPM << (\ (Ok i) -> i) << String.toInt)
                , attribute "aria-describedby" "bpm-label"
                ] []
             ]
@@ -89,5 +93,11 @@ view address model =
             , onClick address GetScore
             ] []
          ]
-      ]
+      ] ++ if model.micRecording then [] else [
+        div [ class "alert alert-danger" ]
+         [ text """Please activate the microphone. Make sure it has no
+             filters on it. On Firefox, set
+	     \"media.getusermedia.aec_enabled\" to false in about:config."""
+         ]
+      ])
    ]

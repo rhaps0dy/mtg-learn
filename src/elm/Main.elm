@@ -11,7 +11,10 @@ import Color
 import Debug
 import Task exposing (Task, andThen)
 
+import Components.Misc exposing (whStyle)
 import Components.Tray as Tray
+import Components.Tray.PlayControls as PlayControls
+import Components.Labels.Common as LabelsCommon
 import Components.Labels.NumLabel
 import Components.Tray.SongSelecter as SongSelecter
 import Components.XLabel as XLabel
@@ -53,6 +56,17 @@ view address model (w, h) =
        [ class "fullscreen"
        , disableContextMenu ]
        [ xLabels
+-- Time cursor, moved by the metronome and analyzer
+       , div
+          [ id "time-cursor"
+          , style <|
+             [("position", "absolute")
+             ,("background-color", "yellow")
+             ,("top", "0px")
+             ,("left", "0px")
+             ,("cursor", "ew-resize")
+             ] ++ whStyle 2 h
+          ] []
        , Html.lazy2 Tray.view trayAddress model.tray
        , div [ class "y-label" ]
           [ yLabels
@@ -79,6 +93,9 @@ model = Signal.foldp update init (Signal.mergeMany
                                   , (Tray << Tray.SongSelecter <<
                                      SongSelecter.LoadingStatus) <~
                                        audioAnalysisLoading
+                                  , (Tray << Tray.PlayControls <<
+                                     PlayControls.MicRecording) <~
+                                       micIsRecording
                                   ])
 
 actions : Signal.Mailbox Action
@@ -116,3 +133,11 @@ port fullscreen : Signal Bool
 port sendFullscreen : Signal (Task x ())
 port sendFullscreen =
   Tray.updateFullscreen trayAddress fullscreen
+
+-- Descriptors calculated from what the microphone listens to
+port micDescriptors : Signal ParseFiles.DescriptorsOne
+
+port micIsRecording : Signal Bool
+
+port calculateMicDescriptors : Signal Bool
+port calculateMicDescriptors = (\m -> m.tray.playControls.playing) <~ model

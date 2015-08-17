@@ -1,6 +1,8 @@
 var elm_app = Elm.fullscreen(Elm.Main,
                { fullscreen: false
                , audioAnalysisLoading: true
+               , micDescriptors: {pitch: 0, energy: 0}
+               , micIsRecording: false
                });
 
 // defines a function that toggles fullscreen and signals the fullscreen state
@@ -55,8 +57,9 @@ var elm_app = Elm.fullscreen(Elm.Main,
   }
 })(window, document, elm_app);
 
-// Loads the audio analysis runtime and signals its completion to the Elm runtime
-(function(document, elm_app) {
+// Loads the audio analysis runtime and signals its completion to the Elm
+// runtime and to the analyzer system
+(function(window, document, elm_app) {
   var script = document.createElement('script');
   script.src = "audio_analysis.js";
   // Try to run main in intervals of 50ms
@@ -66,9 +69,40 @@ var elm_app = Elm.fullscreen(Elm.Main,
     try {
       window.Module._init();
       elm_app.ports.audioAnalysisLoading.send(false);
+      window.startAnalyzer()
     } catch(err) {
       setTimeout(initEssentia, 50);
     }
   };
   document.body.appendChild(script);
-})(document, elm_app);
+})(window, document, elm_app);
+
+(function(window, navigator, elm_app) {
+  window.startAnalyzer = function() {
+    var context = new AudioContext();
+    var options = {
+      mandatory: {
+        googEchoCancellation: false,
+        googAutoGainControl: false,
+        googNoiseSuppression: false,
+        googHighpassFilter: false,
+      },
+      optional: []
+    };
+    function processAudio(){};
+    navigator.mediaDevices.getUserMedia({audio: options}).then(function(stream) {
+      // Prevent microphone from being garbage-collected
+      window.microphone = context.createMediaStreamSource(stream);
+      elm_app.ports.micIsRecording.send(true);
+      var scriptNode = context.createScriptProcessor(4096, 1, 1);
+      elm_app.ports.calculateMicDescriptors.subscribe(function(calcp) {
+        if(calcp)
+          scriptNode.onaudioprocess = processAudio;
+        else
+          scriptNode.onaudioprocess = function() {};
+      });
+    }, function(error) {
+      alert("You need to accept sharing the microphone to use this application");
+    });
+  };
+})(window, navigator, elm_app);

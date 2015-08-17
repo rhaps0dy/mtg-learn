@@ -4,6 +4,7 @@ module ParseFiles
   , sheetMailbox
   , sheetInit
   , Descriptors
+  , DescriptorsOne
   , Buffer
   , descriptors
   , descriptorsInit
@@ -29,6 +30,11 @@ type Buffer = Buffer
 type alias Descriptors =
   { pitch : Buffer
   , energy : Buffer
+  }
+
+type alias DescriptorsOne =
+  { pitch : Float
+  , energy : Float
   }
 
 descriptorMailbox : Signal.Mailbox Descriptors

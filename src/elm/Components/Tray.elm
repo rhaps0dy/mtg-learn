@@ -1,7 +1,7 @@
 module Components.Tray
   ( Model
   , init
-  , Action(SongSelecter)
+  , Action(SongSelecter, PlayControls)
   , update
   , view
   , viewToggleTrayButton
