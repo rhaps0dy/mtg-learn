@@ -138,8 +138,8 @@ window.Elm.Native.ParseFiles.make = function(localRuntime) {
     var IN_BUF_LEN = 2048;
     return Task.asyncFunction(function(callback) {
       var Module = window.Module;
-      var in_buf_idx = Module._in_buf_address() / 4;
-      var pitch_idx = Module._out_buf_address() / 4;
+      var in_buf_idx = Module._in_buf_address(0) / 4;
+      var pitch_idx = Module._out_buf_address(0) / 4;
       var energy_idx = pitch_idx + 1;
 
       var pitches = [];

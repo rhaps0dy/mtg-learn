@@ -89,17 +89,32 @@ var elm_app = Elm.fullscreen(Elm.Main,
       },
       optional: []
     };
-    function processAudio(){};
+
+    var in_buf_idx = Module._in_buf_address(1) / 4;
+    var pitch_idx = Module._out_buf_address(1) / 4;
+    var energy_idx = pitch_idx + 1;
+
     navigator.mediaDevices.getUserMedia({audio: options}).then(function(stream) {
       // Prevent microphone from being garbage-collected
       window.microphone = context.createMediaStreamSource(stream);
       elm_app.ports.micIsRecording.send(true);
-      var scriptNode = context.createScriptProcessor(4096, 1, 1);
+      var scriptNode = context.createScriptProcessor(2048, 1, 1);
+      window.microphone.connect(scriptNode);
       elm_app.ports.calculateMicDescriptors.subscribe(function(calcp) {
-        if(calcp)
-          scriptNode.onaudioprocess = processAudio;
-        else
+        if(calcp) {
+          scriptNode.onaudioprocess = function (audioProcessingEvent) {
+            var inputData = audioProcessingEvent.inputBuffer.getChannelData(0);
+            window.Module.HEAPF32.set(inputData, in_buf_idx);
+            window.Module._process(1);
+            var r = {
+              pitch: Module.HEAPF32[pitch_idx],
+              energy: Module.HEAPF32[pitch_idx]
+            };
+            elm_app.ports.micDescriptors.send(r);
+          };
+        } else {
           scriptNode.onaudioprocess = function() {};
+        }
       });
     }, function(error) {
       alert("You need to accept sharing the microphone to use this application");
