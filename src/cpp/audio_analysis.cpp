@@ -8,6 +8,7 @@
 #include <cstring>
 #include <cstdio>
 #include <cmath>
+#include <limits>
 
 using namespace std;
 using namespace essentia;
@@ -204,7 +205,7 @@ class PostProcessor : public Algorithm {
 	Real pitch = 12 * log2(_in_pitch.tokens()[0] / 440.);
 
 	if(_in_pitch_confidence.tokens()[0] < 0.8)
-	    _out_pitch.tokens()[0] = 0;
+	    _out_pitch.tokens()[0] = std::numeric_limits<Real>::quiet_NaN();
 	else
 	    _out_pitch.tokens()[0] = pitch;
 
