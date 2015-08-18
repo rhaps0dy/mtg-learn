@@ -8,6 +8,7 @@ window.Elm.Native.PlotLine.make = function(localRuntime) {
   var Task = Elm.Native.Task.make(localRuntime);
   var Utils = Elm.Native.Utils.make(localRuntime);
   var Color = Elm.Color.make(localRuntime);
+  var Signal = Elm.Signal.make(localRuntime);
   var flind = Elm.Components.Labels.NumLabel.make(localRuntime).firstLastIndices;
 
 
@@ -124,10 +125,16 @@ window.Elm.Native.PlotLine.make = function(localRuntime) {
     }
   }
 
-  function moveLine(id, bpm, time, xModel) {
+  function moveLine(id, width, bpm, time, xModel, address) {
     return Task.asyncFunction(function(callback) {
       var sampleWidth = calcSampleWidth(bpm, xModel.unitWidthX);
       var x = xModel.centerX * xModel.unitWidthX + sampleWidth * time;
+      if(x > width) {
+          var leftOffset = 70;
+          var task = address._0((leftOffset - sampleWidth * time) / xModel.unitWidthX);
+          Task.perform(task);
+          x = leftOffset;
+      }
       var elem = document.getElementById(id);
       if(elem) {
         elem.style.left = (x - 1) + "px";
@@ -141,7 +148,6 @@ window.Elm.Native.PlotLine.make = function(localRuntime) {
 
   return localRuntime.Native.PlotLine.values =
     { plotBuffer: plot
-    , moveLine: F4(moveLine)
-    , sampleWidth: F2(calcSampleWidth)
+    , moveLine: F6(moveLine)
     };
 };

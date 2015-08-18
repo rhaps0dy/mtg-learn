@@ -8,10 +8,12 @@ import Task
 import Color
 import Components.Labels.Common as LC
 import ParseFiles
+import Signal
 
 plotBuffer : Color.Color -> String -> (Int, Int) -> Float ->
              ParseFiles.Buffer -> LC.XModel -> LC.YModel -> Task.Task String ()
 plotBuffer = Native.PlotLine.plotBuffer
 
-moveLine : String -> Float -> Int -> LC.XModel -> Task.Task String ()
+moveLine : String -> Int -> Float -> Int -> LC.XModel -> Signal.Address Float
+             -> Task.Task String ()
 moveLine = Native.PlotLine.moveLine

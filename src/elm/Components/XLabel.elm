@@ -43,6 +43,7 @@ type Action
   | Sheet ParseFiles.Sheet
   | Descriptors ParseFiles.Descriptors
   | MicDescriptors ParseFiles.DescriptorsOne
+  | SetXCenter Float
 
 -- COMPILER BUG
 lcyInit : LC.YModel
@@ -85,6 +86,12 @@ update action model =
                   ParseFiles.descriptorsAssign model.time d model.descriptorsLive
               , time <- model.time + 1
               }
+    SetXCenter c ->
+      let
+        xModel = model.xModel
+        xModel' = { xModel | centerX <- c }
+      in
+        { model | xModel <- xModel' }
     _ ->
       model
 
@@ -231,7 +238,8 @@ view vSelModel bpm (width, height) =
            m.descriptors.pitch m.xModel m.pitch
        , PlotLine.plotBuffer Color.lightBlue "energy-expert" panelSize bpm
            m.descriptors.energy m.xModel m.energy
-       , PlotLine.moveLine "time-cursor" bpm m.time m.xModel
+       , PlotLine.moveLine "time-cursor" width bpm m.time m.xModel
+           (Signal.forwardTo actions.address SetXCenter)
        , PlotLine.plotBuffer Color.darkGreen "pitch-live" panelSize bpm
            m.descriptorsLive.pitch m.xModel m.pitch
        , PlotLine.plotBuffer Color.darkBlue "energy-live" panelSize bpm
