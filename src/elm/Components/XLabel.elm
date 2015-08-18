@@ -33,6 +33,7 @@ type alias Model =
 -- We use Int and not Time.Time because we represent the time as the current
 -- sample we are writing on.
   , time : Int
+  , moveXCenterIfNeeded : Bool
   }
 
 type Action
@@ -61,6 +62,7 @@ init =
   , descriptors = ParseFiles.descriptorsInit
   , descriptorsLive = ParseFiles.descriptorsLiveInit
   , time = 0
+  , moveXCenterIfNeeded = False
   }
 
 update : Action -> Model -> Model
@@ -69,29 +71,38 @@ update action model =
     Pitch a ->
       { model | pitch <- LC.yUpdate a model.pitch
               , xModel <- LC.xUpdate a model.xModel
+              , moveXCenterIfNeeded <- False
               }
     Energy a ->
       { model | energy <- LC.yUpdate a model.energy
               , xModel <- LC.xUpdate a model.xModel
+              , moveXCenterIfNeeded <- False
               }
     XLabel a ->
       { model | xModel <- LC.xUpdate a model.xModel
+              , moveXCenterIfNeeded <- False
               }
     Descriptors d ->
-      { model | descriptors <- d }
+      { model | descriptors <- d
+              , moveXCenterIfNeeded <- False
+              }
     Sheet s ->
-      { model | sheet <- s }
+      { model | sheet <- s
+              , moveXCenterIfNeeded <- False
+              }
     MicDescriptors d ->
       { model | descriptorsLive <-
                   ParseFiles.descriptorsAssign model.time d model.descriptorsLive
               , time <- model.time + 1
+              , moveXCenterIfNeeded <- True
               }
     SetXCenter c ->
       let
         xModel = model.xModel
         xModel' = { xModel | centerX <- c }
       in
-        { model | xModel <- xModel' }
+        { model | xModel <- xModel'
+                }
     _ ->
       model
 
@@ -239,7 +250,7 @@ view vSelModel bpm (width, height) =
        , PlotLine.plotBuffer Color.lightBlue "energy-expert" panelSize bpm
            m.descriptors.energy m.xModel m.energy
        , PlotLine.moveLine "time-cursor" width bpm m.time m.xModel
-           (Signal.forwardTo actions.address SetXCenter)
+           m.moveXCenterIfNeeded (Signal.forwardTo actions.address SetXCenter)
        , PlotLine.plotBuffer Color.darkGreen "pitch-live" panelSize bpm
            m.descriptorsLive.pitch m.xModel m.pitch
        , PlotLine.plotBuffer Color.darkBlue "energy-live" panelSize bpm

@@ -125,19 +125,27 @@ window.Elm.Native.PlotLine.make = function(localRuntime) {
     }
   }
 
-  function moveLine(id, width, bpm, time, xModel, address) {
+  function moveLine(id, width, bpm, time, xModel, moveXCenterIfNeeded, address) {
     return Task.asyncFunction(function(callback) {
       var sampleWidth = calcSampleWidth(bpm, xModel.unitWidthX);
       var x = xModel.centerX * xModel.unitWidthX + sampleWidth * time;
-      if(x > width) {
-          var leftOffset = 70;
-          var task = address._0((leftOffset - sampleWidth * time) / xModel.unitWidthX);
-          Task.perform(task);
-          x = leftOffset;
+
+      if(moveXCenterIfNeeded && x > width) {
+        // Only move back if time is changing and we are out of the screen
+        var leftOffset = 320;
+        var task = address._0((leftOffset - sampleWidth * time) / xModel.unitWidthX);
+        Task.perform(task);
+        x = leftOffset;
       }
+
       var elem = document.getElementById(id);
       if(elem) {
-        elem.style.left = (x - 1) + "px";
+	if(x >= 0 && x < width) {
+	  elem.style.display = 'block';
+          elem.style.left = (x - 1) + "px";
+	} else {
+	  elem.style.display = 'none';
+	}
         callback(Task.succeed(Utils.Tuple0));
       } else {
         console.error("Element " + id + " does not exist");
@@ -148,6 +156,6 @@ window.Elm.Native.PlotLine.make = function(localRuntime) {
 
   return localRuntime.Native.PlotLine.values =
     { plotBuffer: plot
-    , moveLine: F6(moveLine)
+    , moveLine: F7(moveLine)
     };
 };
