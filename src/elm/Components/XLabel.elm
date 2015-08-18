@@ -139,8 +139,8 @@ model =
 yLabelWidth : Int
 yLabelWidth = 40
 
-xLabelHeight : Int
-xLabelHeight = 25
+xLabelHeightCanonical : Int
+xLabelHeightCanonical = 25
 
 canvas : Int -> Int -> List (String, String) -> Bool -> String ->
          Maybe (Signal.Address LC.Action) -> Html.Html
@@ -179,11 +179,11 @@ view : VSel.Model -> Float -> (Int, Int) ->
        (Html.Html, Html.Html, Model -> Task.Task String ())
 view vSelModel bpm (width, height) =
   let
-    adjHeight' = toFloat (height - xLabelHeight)
+    adjHeight' = toFloat (height - xLabelHeightCanonical)
     (nComp, componentH') = getNCompAndHeight adjHeight' vSelModel
     componentH = floor componentH'
     yLabelH = componentH * nComp
-    xLabelH = height - yLabelH
+    xLabelHeight = height - yLabelH
     canvas' = canvas width componentH []
     xLabels =
       let
@@ -214,11 +214,11 @@ view vSelModel bpm (width, height) =
        [ Html.style <| whStyle width height
        , Html.class "main-canvases"
        ]
-       ([canvas width xLabelH [ ("position", "absolute")
-                             , ("bottom", "0px")
-                             , ("overflow", "hidden")
-                             ]
-           True "horizontal-label" (Just actionsXLabel)
+       ([canvas width xLabelHeight
+         [ ("position", "absolute")
+         , ("bottom", "0px")
+         , ("overflow", "hidden")
+         ] True "horizontal-label" (Just actionsXLabel)
 -- Time cursor, moved by a draw task
        , Html.div
           [ Html.id "time-cursor"
