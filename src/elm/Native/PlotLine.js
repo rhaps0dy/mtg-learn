@@ -40,21 +40,26 @@ window.Elm.Native.PlotLine.make = function(localRuntime) {
     var centerY = ymodel.centerY;
     var unitWidthX = xmodel.unitWidthX;
     var unitWidthY = ymodel.unitWidthY;
+    var drawOnlyLast = false;
     cache.values = cache.values || {};
-    if(cache.values === values &&
-       cache.values.length === values.length &&
+    if(!cache.lastFailed &&
        cache.centerX === centerX &&
        cache.centerY === centerY &&
        cache.unitWidthX === unitWidthX &&
        cache.unitWidthY === unitWidthY &&
-       cache.bpm === bpm)
+       cache.bpm === bpm &&
+       cache.width === width &&
+       cache.height === height)
     {
-      return Task.asyncFunction(function(callback) {
-        callback(Task.succeed(Utils.Tuple0));
-      });
+      if(cache.values === values &&
+         cache.values.length === values.length) {
+        return Task.asyncFunction(function(callback) {
+          callback(Task.succeed(Utils.Tuple0));
+        });
+      } else {
+        drawOnlyLast = cache.values.length + 1 === values.length;
+      }
     }
-
-    var drawOnlyLast = cache.values.length + 1 === values.length;
 
     cache.values = values;
     cache.centerX = centerX;
@@ -62,14 +67,20 @@ window.Elm.Native.PlotLine.make = function(localRuntime) {
     cache.unitWidthX = unitWidthX;
     cache.unitWidthY = unitWidthY;
     cache.bpm = bpm;
+    cache.width = width;
+    cache.height = height;
 
     var sampleWidth = calcSampleWidth(bpm, unitWidthX);
 
     return Task.asyncFunction(function(callback) {
       var elem = document.getElementById(id);
       if(!elem) {
+        cache.lastFailed = true;
         return callback(Task.fail("element with id " + id + " not found"));
+      } else {
+        cache.lastFailed = false;
       }
+//      console.log(cache.lastFailed);
       var ctx = elem.getContext('2d');
       var imData = ctx.createImageData(width, height);
       var imBuf = imData.data;
@@ -79,30 +90,39 @@ window.Elm.Native.PlotLine.make = function(localRuntime) {
       var firstY = res._0;
       var lastY = res._1;
       var start, end;
-      ctx.fillStyle = color;
-      if(drawOnlyLast) {
-        var ind = values.length - 1;
-        if(ind >= firstIndex && ind < lastIndex) {
-          start = ind;
-          end = ind + 1;
+      function draw(maxRec) {
+        if(maxRec > 5) return;
+        if(elem.width !== width || elem.height !== height) {
+          // Canvas is going to be resized soon, we need to defer drawing
+          setTimeout(function(){draw(maxRec+1);}, 5);
+	  return;
+        }
+        ctx.fillStyle = color;
+        if(drawOnlyLast) {
+          var ind = values.length - 1;
+          if(ind >= firstIndex && ind < lastIndex) {
+            start = ind;
+            end = ind + 1;
+          } else {
+            // don't draw anything
+            start = end = 0;
+          }
         } else {
-          // don't draw anything
-          start = end = 0;
+          start = Math.max(firstIndex, 0);
+          end = Math.min(values.length, lastIndex);
+          ctx.clearRect(0, 0, width, height);
         }
-      } else {
-        start = Math.max(firstIndex, 0);
-        end = Math.min(values.length, lastIndex);
-        ctx.clearRect(0, 0, width, height);
-      }
-      for(var i=start; i < end; i++) {
-        // plot the average of values within a pixel
-        var value = values[i];
-        if(!isNaN(value)) {
-          var y = height - ((value + centerY) * unitWidthY)|0;
-          var x = (i * sampleWidth + centerX * unitWidthX - unitWidthX / 4)|0;
-          ctx.fillRect(x - sampleWidth, y-2, sampleWidth, 4);
+        for(var i=start; i < end; i++) {
+          // plot the average of values within a pixel
+          var value = values[i];
+          if(!isNaN(value)) {
+            var y = height - ((value + centerY) * unitWidthY)|0;
+            var x = (i * sampleWidth + centerX * unitWidthX - unitWidthX / 4)|0;
+            ctx.fillRect(x - sampleWidth, y-2, sampleWidth, 4);
+          }
         }
       }
+      draw(0);
       callback(Task.succeed(Utils.tuple0));
     });
   }}}}}}}
@@ -148,7 +168,6 @@ window.Elm.Native.PlotLine.make = function(localRuntime) {
 	}
         callback(Task.succeed(Utils.Tuple0));
       } else {
-        console.error("Element " + id + " does not exist");
         callback(Task.fail("Element " + id + " does not exist"));
       }
     });
