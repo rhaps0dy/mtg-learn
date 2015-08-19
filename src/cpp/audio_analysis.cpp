@@ -119,62 +119,6 @@ class BufferWriter : public Algorithm {
 
 };
 
-template<typename T>
-class StreamFork : public Algorithm {
-  protected:
-    Sink<T> _input;
-    vector<Source<T> *> _outputs;
-  public:
-    StreamFork(int n) : Algorithm() {
-        setName("StreamFork");
-        declareInput(_input, 1, "input", "the input to be copied to the N outputs");
-	char description[256];
-	char name[16];
-        for(int i=0; i<n; i++) {
-	    snprintf(name, 16, "out%d", i);
-	    snprintf(description, 256, "the %d'th output the input will be copied to", i);
-            _outputs.push_back(new Source<T>());
-            declareOutput(*_outputs[i], 1, string(name), string(description));
-        }
-    }
-
-    ~StreamFork() {
-	for(auto out = _outputs.begin(); out != _outputs.end(); out++) {
-            delete *out;
-        }
-    }
-
-    AlgorithmStatus process() {
-        AlgorithmStatus status = acquireData();
-        if(status != OK) {
-            return NO_INPUT;
-        }
-        if(_input.available() == 0)
-            return NO_INPUT;
-
-        const vector<T> &its = _input.tokens();
-        int sz = its.size();
-	for(auto out = _outputs.begin(); out != _outputs.end(); out++) {
-            vector<T> &ots = (*out)->tokens();
-            for(int i=0; i<sz; i++) {
-                ots[i] = its[i];
-            }
-        }
-
-        releaseData();
-        return OK;
-    }
-
-    void declareParameters() {
-    }
-
-    static const char* name;
-    static const char* description;
-
-    void configure() {
-    }
-};
-
 class PostProcessor : public Algorithm {
   protected:
     Sink<Real> _in_pitch;
@@ -240,7 +184,6 @@ void init_cpp(Network **network, Real *input_addr, Real *out_addr)
                                             "frameSize", frameSize,
                                             "hopSize", hopSize,
                                             "silentFrames", "noise");
-    Algorithm *fork = new StreamFork<vector<Real> >(2);
     Algorithm *rms = factory.create("RMS");
     Algorithm *windowing = factory.create("Windowing",
                                           "type", "hann");
@@ -253,15 +196,14 @@ void init_cpp(Network **network, Real *input_addr, Real *out_addr)
     Algorithm *energy_writer = new BufferWriter(&out_addr[1], 1);
 
     inp->output("output") >> frameCutter->input("signal");
-    frameCutter->output("frame") >> fork->input("input");
 
-    fork->output("out0") >> windowing->input("frame");
+    frameCutter->output("frame") >> windowing->input("frame");
     windowing->output("frame") >> spectrum->input("frame");
     spectrum->output("spectrum") >> pitch->input("spectrum");
     pitch->output("pitchConfidence") >> post_process->input("pitch_confidence");
     pitch->output("pitch") >> post_process->input("pitch");
 
-    fork->output("out1") >> rms->input("array");
+    frameCutter->output("frame") >> rms->input("array");
     rms->output("rms") >> post_process->input("energy");
 
     post_process->output("pitch") >> pitch_writer->input("input");
