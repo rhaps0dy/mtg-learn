@@ -157,21 +157,20 @@ window.Elm.Native.ParseFiles.make = function(localRuntime) {
     });
   }
 
-  function assert(condition, message) {
-    if(!condition)
-      throw new Error(message || "Assertion failed");
-  }
 
   var descNames = ["pitch", "energy"];
   function descriptorsAssign(idx, descriptorsOne, descriptors) {
-    assert(idx >= 0);
-    assert(idx < descriptors.pitch.length + 1);
+    // We are allowed to at most grow the array 1 position
+    if(idx < 0 || idx > descriptors.pitch.length) {
+      console.error("index out of bounds: " + idx);
+      return descriptors;
+    }
     var newDesc = {};
     for(var i=0; i<descNames.length; i++) {
       // idx is the same as the array length
       var desc = descNames[i];
       // copy the array
-      newDesc[desc] = descriptors[desc].slice();
+      newDesc[desc] = descriptors[desc].slice(0, idx);
       newDesc[desc].push(descriptorsOne[desc]);
     }
     return newDesc;

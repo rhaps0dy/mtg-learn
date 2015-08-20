@@ -69,7 +69,9 @@ init =
   , sheet = ParseFiles.sheetInit
   , descriptors = ParseFiles.descriptorsInit
   , descriptorsLive = ParseFiles.descriptorsLiveInit
-  , time = 0
+-- Time will get set to 0 by the first descriptors that comes through the
+-- micDescriptors port
+  , time = -1
   , moveXCenterIfNeeded = False
   }
 
@@ -120,9 +122,17 @@ update action model =
           in
             { model | time <- 0, xModel <- xModel' }
         PlayControls.JumpEnd ->
-          { model | time <- ParseFiles.descriptorsLength model.descriptors
-                  , moveXCenterIfNeeded <- True
-                  }
+          let
+            descLen = ParseFiles.descriptorsLength model.descriptors
+            lastTime =
+              if descLen == 0 then
+                ParseFiles.descriptorsLength model.descriptors
+              else
+                descLen
+          in
+            { model | time <- lastTime
+                    , moveXCenterIfNeeded <- True
+                    }
         _ ->
           model
     _ ->
