@@ -127,9 +127,15 @@ var Constants = Elm.Constants.make({});
 
 (function(document, elm_app) {
   var playInfo = {};
-  var metronome = new Audio();
-  metronome.src = "/data/click.ogg";
-  document.body.appendChild(metronome);
+  var nMetr = 8;
+  // We use several audio objects to be able to play simulatenous tocks and not
+  // have the tempo limited to the audio file's length
+  var metronomes = new Array(nMetr);
+  for(var i=0; i<nMetr; i++) {
+    metronomes[i] = new Audio();
+    metronomes[i].src = "/data/click.ogg";
+    document.body.appendChild(metronomes[i]);
+  }
 
   elm_app.ports.playMetronome.subscribe(function(s) {
     playInfo.playMetronome = s;
@@ -137,6 +143,7 @@ var Constants = Elm.Constants.make({});
   elm_app.ports.bpm.subscribe(function(s) {
     playInfo.bpm = s;
   });
+  playInfo.i = 0;
   elm_app.ports.sample.subscribe(function(time) {
     if(!playInfo.playMetronome)
       return;
@@ -144,7 +151,10 @@ var Constants = Elm.Constants.make({});
     var beat_duration = 60 / playInfo.bpm;
     var time_secs = time * frameDuration
 
-    if(time_secs % beat_duration < frameDuration)
-      metronome.play();
+    if(playInfo.lastTime !== time && time_secs % beat_duration < frameDuration) {
+      playInfo.lastTime = time;
+      metronomes[playInfo.i].play();
+      playInfo.i = (playInfo.i + 1) % nMetr;
+    }
   });
 })(document, elm_app);
