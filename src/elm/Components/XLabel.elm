@@ -126,7 +126,7 @@ update action model =
             descLen = ParseFiles.descriptorsLength model.descriptors
             lastTime =
               if descLen == 0 then
-                ParseFiles.descriptorsLength model.descriptors
+                ParseFiles.descriptorsLength model.descriptorsLive
               else
                 descLen
           in
