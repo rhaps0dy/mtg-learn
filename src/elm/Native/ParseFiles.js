@@ -11,6 +11,7 @@ window.Elm.Native.ParseFiles.make = function(localRuntime) {
   var List = Elm.Native.List.make(localRuntime);
   var Utils = Elm.Native.Utils.make(localRuntime);
   var Maybe = Elm.Maybe.make(localRuntime);
+  var Constants = Elm.Constants.make(localRuntime);
 
   function sheet(file) {
     return Task.asyncFunction(function(callback) {
@@ -135,7 +136,7 @@ window.Elm.Native.ParseFiles.make = function(localRuntime) {
   }
 
   function descriptors(buffer) {
-    var IN_BUF_LEN = 2048;
+    var IN_BUF_LEN = Constants.hopSize;
     return Task.asyncFunction(function(callback) {
       var Module = window.Module;
       var in_buf_idx = Module._in_buf_address(0) / 4;

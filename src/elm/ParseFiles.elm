@@ -23,6 +23,8 @@ import File exposing (..)
 import Task exposing (Task)
 
 import Native.ParseFiles
+-- so the native file can use Constants
+import Constants
 
 type alias Sheet = List ({pitch : Maybe Int, duration : Float})
 

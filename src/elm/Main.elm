@@ -136,3 +136,13 @@ port micIsRecording : Signal Bool
 
 port calculateMicDescriptors : Signal Bool
 port calculateMicDescriptors = (\m -> m.tray.playControls.playing) <~ model
+
+-- Play metronome when a beat is passed
+port playMetronome : Signal Bool
+port playMetronome = (\m -> m.tray.playControls.metronome) <~ model
+
+port bpm : Signal Int
+port bpm = (\m -> m.tray.playControls.bpm) <~ model
+
+port sample : Signal Int
+port sample = (.time) <~ XLabel.model

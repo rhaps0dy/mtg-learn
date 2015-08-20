@@ -9,12 +9,13 @@ window.Elm.Native.PlotLine.make = function(localRuntime) {
   var Utils = Elm.Native.Utils.make(localRuntime);
   var Color = Elm.Color.make(localRuntime);
   var Signal = Elm.Signal.make(localRuntime);
+  var Constants = Elm.Constants.make(localRuntime);
 
+  console.log(localRuntime);
 
   function calcSampleWidth(bpm, unitWidthX) {
-    var sampleSeconds = 2048 / 44100;
     var beatSeconds = 60/2 / bpm; // Every beat in the sheet is an eighth note
-    return unitWidthX / beatSeconds * sampleSeconds;
+    return unitWidthX / beatSeconds * Constants.frameDuration;
   }
 
   // This function could be curried, and the part extracting color precalculated

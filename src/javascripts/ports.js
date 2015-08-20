@@ -5,6 +5,9 @@ var elm_app = Elm.fullscreen(Elm.Main,
                , micIsRecording: false
                });
 
+// This may have pernicious side-effects if the Constants module imports something
+var Constants = Elm.Constants.make({});
+
 // defines a function that toggles fullscreen and signals the fullscreen state
 // to the Elm runtime
 (function(window, document, elm_app) {
@@ -98,7 +101,7 @@ var elm_app = Elm.fullscreen(Elm.Main,
       // Prevent microphone from being garbage-collected
       window.microphone = context.createMediaStreamSource(stream);
       elm_app.ports.micIsRecording.send(true);
-      var scriptNode = context.createScriptProcessor(2048, 1, 1);
+      var scriptNode = context.createScriptProcessor(Constants.hopSize, 1, 1);
       window.microphone.connect(scriptNode);
       elm_app.ports.calculateMicDescriptors.subscribe(function(calcp) {
         if(calcp) {
@@ -121,3 +124,27 @@ var elm_app = Elm.fullscreen(Elm.Main,
     });
   };
 })(window, navigator, elm_app);
+
+(function(document, elm_app) {
+  var playInfo = {};
+  var metronome = new Audio();
+  metronome.src = "/data/click.ogg";
+  document.body.appendChild(metronome);
+
+  elm_app.ports.playMetronome.subscribe(function(s) {
+    playInfo.playMetronome = s;
+  });
+  elm_app.ports.bpm.subscribe(function(s) {
+    playInfo.bpm = s;
+  });
+  elm_app.ports.sample.subscribe(function(time) {
+    if(!playInfo.playMetronome)
+      return;
+    var frameDuration = Constants.frameDuration
+    var beat_duration = 60 / playInfo.bpm;
+    var time_secs = time * frameDuration
+
+    if(time_secs % beat_duration < frameDuration)
+      metronome.play();
+  });
+})(document, elm_app);
