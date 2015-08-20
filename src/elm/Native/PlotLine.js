@@ -9,7 +9,6 @@ window.Elm.Native.PlotLine.make = function(localRuntime) {
   var Utils = Elm.Native.Utils.make(localRuntime);
   var Color = Elm.Color.make(localRuntime);
   var Signal = Elm.Signal.make(localRuntime);
-  var flind = Elm.Components.Labels.NumLabel.make(localRuntime).firstLastIndices;
 
 
   function calcSampleWidth(bpm, unitWidthX) {
@@ -86,9 +85,6 @@ window.Elm.Native.PlotLine.make = function(localRuntime) {
       var imBuf = imData.data;
       var firstIndex = Math.floor(-centerX);
       var lastIndex = Math.ceil(-centerX + width / (sampleWidth / unitWidthX));
-      var res = A3(flind, height, unitWidthY, centerY);
-      var firstY = res._0;
-      var lastY = res._1;
       var start, end;
       function draw(maxRec) {
         if(maxRec > 5) return;
@@ -117,8 +113,8 @@ window.Elm.Native.PlotLine.make = function(localRuntime) {
           var value = values[i];
           if(!isNaN(value)) {
             var y = height - ((value + centerY) * unitWidthY)|0;
-            var x = (i * sampleWidth + centerX * unitWidthX - unitWidthX / 4)|0;
-            ctx.fillRect(x - sampleWidth, y-2, sampleWidth, 4);
+            var x = (i * sampleWidth + centerX * unitWidthX)|0;
+            ctx.fillRect(x, y-2, sampleWidth, 4);
           }
         }
       }

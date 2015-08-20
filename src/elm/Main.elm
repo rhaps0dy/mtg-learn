@@ -55,7 +55,7 @@ view address model (w, h) =
        [ class "fullscreen"
        , disableContextMenu ]
        [ xLabels
-       , Html.lazy2 Tray.view trayAddress model.tray
+       , Html.lazy3 Tray.view trayAddress XLabel.playControlsAddress model.tray
        , div [ class "y-label" ]
           [ yLabels
           , Html.lazy2 Tray.viewToggleTrayButton trayAddress model.tray

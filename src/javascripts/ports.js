@@ -1,7 +1,7 @@
 var elm_app = Elm.fullscreen(Elm.Main,
                { fullscreen: false
                , audioAnalysisLoading: true
-               , micDescriptors: {pitch: 0, energy: 0}
+               , micDescriptors: {pitch: NaN, energy: NaN}
                , micIsRecording: false
                });
 
