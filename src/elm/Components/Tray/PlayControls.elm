@@ -1,4 +1,11 @@
-module Components.Tray.PlayControls (Model, init, Action(MicRecording), update, view) where
+module Components.Tray.PlayControls
+  ( Model
+  , init
+  , Action(MicRecording)
+  , ExternalAction(..)
+  , update
+  , view
+  ) where
 
 import Html as Html exposing (..)
 import Html.Attributes as Attr exposing (..)
@@ -24,12 +31,14 @@ init =
   , micRecording = False
   }
 
-type Action
-  = NoOp
-  | JumpBeginning
-  | TogglePlaying
+type ExternalAction
+  = JumpBeginning
   | JumpEnd
   | GetScore
+
+type Action
+  = NoOp
+  | TogglePlaying
   | ChangeBPM Int
   | Metronome Bool
   | MicRecording Bool
@@ -43,8 +52,8 @@ update action model =
    MicRecording b -> { model | micRecording <- b }
    _ -> model
 
-view : Signal.Address Action -> Model -> Html
-view address model =
+view : Signal.Address Action -> Signal.Address ExternalAction -> Model -> Html
+view address extAddr model =
   div [ class "control-panel" ]
    [ div [ class "clearfix" ]
       ([ div [ class "form-group" ]
@@ -72,7 +81,7 @@ view address model =
          , div [ class "btn-group pull-left" ]
             [ span
                [ class "btn btn-default glyphicon glyphicon-fast-backward"
-               , onClick address JumpBeginning
+               , onClick extAddr JumpBeginning
                ] []
             , span
                [ class ("btn btn-default glyphicon " ++ if model.playing then
@@ -83,14 +92,14 @@ view address model =
                ] []
             , span
                [ class "btn btn-default glyphicon glyphicon-fast-forward"
-               , onClick address JumpEnd
+               , onClick extAddr JumpEnd
                ] []
             ]
          , input
             [ class "btn btn-default pull-right"
             , type' "button"
             , value "Evaluate"
-            , onClick address GetScore
+            , onClick extAddr GetScore
             ] []
          ]
       ] ++ if model.micRecording then [] else [

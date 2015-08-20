@@ -177,6 +177,10 @@ window.Elm.Native.ParseFiles.make = function(localRuntime) {
     return newDesc;
   }
 
+  function descriptorsLength(d) {
+    return d.pitch.length;
+  }
+
   return localRuntime.Native.ParseFiles.values =
     { sheet: sheet
     , print: print
@@ -184,6 +188,7 @@ window.Elm.Native.ParseFiles.make = function(localRuntime) {
     , descriptors: descriptors
     , emptyBuffer: function(){return new Array();}
     , descriptorsAssign: window.F3(descriptorsAssign)
+    , descriptorsLength: descriptorsLength
     };
 };
 })(window, document);

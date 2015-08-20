@@ -58,8 +58,9 @@ update action m =
                           <- ViewSelecter.update s m.viewSelecter }
     _ -> m
 
-view : Signal.Address Action -> Model -> Html.Html
-view address model =
+view : Signal.Address Action -> Signal.Address PlayControls.ExternalAction
+       -> Model -> Html.Html
+view address extAddr model =
   Html.div
    [ Html.classList
       [ ("controls", True)
@@ -68,8 +69,8 @@ view address model =
    ]
    [ Html.lazy2 SongSelecter.view (Signal.forwardTo address SongSelecter)
        model.songSelecter
-   , Html.lazy2 PlayControls.view (Signal.forwardTo address PlayControls)
-       model.playControls
+   , Html.lazy3 PlayControls.view (Signal.forwardTo address PlayControls)
+       extAddr model.playControls
    , Html.lazy2 ViewSelecter.view (Signal.forwardTo address ViewSelecter)
        model.viewSelecter
    ]

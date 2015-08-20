@@ -12,6 +12,7 @@ module ParseFiles
   , descriptorsInit
   , descriptorsLiveInit
   , descriptorMailbox
+  , descriptorsLength
   , print
   , DecodedAudioBuffer
   , decodeAudioFile
@@ -79,3 +80,6 @@ sheetInit = []
 
 descriptorsAssign : Int -> DescriptorsOne -> Descriptors -> Descriptors
 descriptorsAssign = Native.ParseFiles.descriptorsAssign
+
+descriptorsLength : Descriptors -> Int
+descriptorsLength = Native.ParseFiles.descriptorsLength

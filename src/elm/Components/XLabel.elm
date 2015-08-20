@@ -1,4 +1,4 @@
-module Components.XLabel (Model, model, view) where
+module Components.XLabel (Model, model, view, playControlsAddress) where
 
 {- This component shows the time scale in the x axis
 -}
@@ -21,9 +21,10 @@ import Components.Labels.NumLabel as NumLabel
 import Components.Labels.PianoLabel as PianoLabel
 import Components.Plots.PlotLine as PlotLine
 import Components.Plots.PianoRoll as PianoRoll
+import Components.Tray.PlayControls as PlayControls
 
 
-type alias Model = 
+type alias Model =
   { pitch : LC.YModel
   , energy : LC.YModel
   , xModel : LC.XModel
@@ -45,10 +46,17 @@ type Action
   | Descriptors ParseFiles.Descriptors
   | MicDescriptors ParseFiles.DescriptorsOne
   | SetXCenter Float
+  | PlayControls PlayControls.ExternalAction
+
+playControlsAddress : Signal.Address PlayControls.ExternalAction
+playControlsAddress = Signal.forwardTo actions.address PlayControls
 
 -- COMPILER BUG
 lcyInit : LC.YModel
 lcyInit = LC.yInit
+
+lcxInit : LC.XModel
+lcxInit = LC.xInit
 
 init : Model
 init =
@@ -103,6 +111,20 @@ update action model =
       in
         { model | xModel <- xModel'
                 }
+    PlayControls pc ->
+      case pc of
+        PlayControls.JumpBeginning ->
+          let
+            xModel = model.xModel
+            xModel' = { xModel | centerX <- lcxInit.centerX }
+          in
+            { model | time <- 0, xModel <- xModel' }
+        PlayControls.JumpEnd ->
+          { model | time <- ParseFiles.descriptorsLength model.descriptors
+                  , moveXCenterIfNeeded <- True
+                  }
+        _ ->
+          model
     _ ->
       model
 
@@ -133,7 +155,7 @@ model =
      , Sheet <~ sheetMailbox.signal
      , Descriptors <~ descriptorMailbox.signal
      , MicDescriptors <~ micDescriptorsMailbox.signal
-     ] 
+     ]
 
 -- yLabelWidth is from $yLabel-width in style.scss
 yLabelWidth : Int
@@ -157,7 +179,7 @@ canvas width height styles isFirst id address =
         , HEv.onMouseUp a (\_ -> LC.MouseUp)
         , HEv.onMouseEnter a LC.MouseEnter
         , HEv.onMouseLeave a (\_ -> LC.MouseUp)
-        ]) 
+        ])
    [ Html.canvas
       [ Html.id id
       , Html.attribute "width" <| toString width
@@ -236,7 +258,7 @@ view vSelModel bpm (width, height) =
        ] (yLabels ++ [Html.div [ Html.class "black-axis-end" ] []])
     panelSize = (width, componentH)
     yLabelSize = (yLabelWidth, componentH)
-    drawTask m = 
+    drawTask m =
       TaskUtils.sequence
        [ NumLabel.bidimensional "energy-label" panelSize m.xModel m.energy
        , PianoLabel.withoutNotes "pitch-label" panelSize m.xModel m.pitch
