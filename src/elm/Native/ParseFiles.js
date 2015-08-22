@@ -136,7 +136,7 @@ window.Elm.Native.ParseFiles.make = function(localRuntime) {
   }
 
   function descriptors(buffer) {
-    var IN_BUF_LEN = Constants.hopSize;
+    var IN_BUF_LEN = Constants.inputBufferSize;
     return Task.asyncFunction(function(callback) {
       var Module = window.Module;
       var in_buf_idx = Module._in_buf_address(0) / 4;

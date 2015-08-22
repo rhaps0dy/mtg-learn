@@ -15,7 +15,7 @@ using namespace essentia;
 using namespace essentia::streaming;
 using namespace essentia::scheduler;
 
-#define IN_BUF_SIZE 2048
+#define IN_BUF_SIZE 4096
 #define N_DESCRIPTORS 2
 #define N_PROCESSING_STREAMS 2
 
@@ -174,8 +174,8 @@ class PostProcessor : public Algorithm {
 void init_cpp(Network **network, Real *input_addr, Real *out_addr)
 {
     Real sampleRate = 44100.0;
-    int hopSize = IN_BUF_SIZE;
-    int frameSize = 4096;
+    int hopSize = 128;
+    int frameSize = 2048;
 
     // audio -> frameCutter -> Spectrum -> PitchYinFFT
     AlgorithmFactory &factory = streaming::AlgorithmFactory::instance();

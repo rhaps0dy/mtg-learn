@@ -83,25 +83,29 @@ var Constants = Elm.Constants.make({});
 (function(window, navigator, elm_app) {
   window.startAnalyzer = function() {
     var context = new AudioContext();
-    var options = {
-      mandatory: {
-        googEchoCancellation: false,
-        googAutoGainControl: false,
-        googNoiseSuppression: false,
-        googHighpassFilter: false,
-      },
-      optional: []
-    };
 
     var in_buf_idx = Module._in_buf_address(1) / 4;
     var pitch_idx = Module._out_buf_address(1) / 4;
     var energy_idx = pitch_idx + 1;
 
-    navigator.mediaDevices.getUserMedia({audio: options}).then(function(stream) {
+    var constraints = {
+      audio: {
+        optional: {
+          googEchoCancellation: false,
+          googAutoGainControl: false,
+          googNoiseSuppression: false,
+          googHighpassFilter: false,
+        }
+      }
+    };
+    var getUserMedia =
+      navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+    getUserMedia.call(navigator, {audio: true, costraints: constraints},
+                      function(stream) {
       // Prevent microphone from being garbage-collected
       window.microphone = context.createMediaStreamSource(stream);
       elm_app.ports.micIsRecording.send(true);
-      var scriptNode = context.createScriptProcessor(Constants.hopSize, 1, 1);
+      window.scriptNode = context.createScriptProcessor(Constants.inputBufferSize, 1, 1);
       window.microphone.connect(scriptNode);
       elm_app.ports.calculateMicDescriptors.subscribe(function(calcp) {
         if(calcp) {
