@@ -9,6 +9,7 @@ audio_analysis.js: audio_analysis.bc
 		 --std=c++11 \
 		 -s EXPORTED_FUNCTIONS="['_in_buf_address', '_out_buf_address', '_process', '_init', '_quit']" \
 		 -s DISABLE_EXCEPTION_CATCHING=0 \
+		 -s ALLOW_MEMORY_GROWTH=1 \
 		 -o audio_analysis.js
 
 audio_analysis.bc: audio_analysis.cpp
