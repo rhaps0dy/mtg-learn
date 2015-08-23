@@ -258,7 +258,6 @@ view vSelModel bpm (width, height) =
              [("position", "absolute")
              ,("background-color", "yellow")
              ,("top", "0px")
-             ,("cursor", "ew-resize")
              ] ++ whStyle 2 height
           ] []
        ] ++ xLabels)
