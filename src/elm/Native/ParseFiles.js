@@ -163,7 +163,6 @@ window.Elm.Native.ParseFiles.make = function(localRuntime) {
   function descriptorsAssign(idx, descriptorsOne, descriptors) {
     // We are allowed to at most grow the array 1 position
     if(idx < 0 || idx > descriptors.pitch.length) {
-      console.error("index out of bounds: " + idx);
       return descriptors;
     }
     var newDesc = {};

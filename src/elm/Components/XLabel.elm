@@ -16,6 +16,7 @@ import HtmlEvents as HEv
 import Debug
 import Color
 import ParseFiles
+import Constants
 
 import Components.Labels.NumLabel as NumLabel
 import Components.Labels.PianoLabel as PianoLabel
@@ -69,9 +70,8 @@ init =
   , sheet = ParseFiles.sheetInit
   , descriptors = ParseFiles.descriptorsInit
   , descriptorsLive = ParseFiles.descriptorsLiveInit
--- Time will get set to 0 by the first descriptors that comes through the
--- micDescriptors port
-  , time = -1
+-- Initial time is three seconds before the start of the song
+  , time = ceiling <| -3 / Constants.frameDuration
   , moveXCenterIfNeeded = False
   }
 
@@ -120,7 +120,7 @@ update action model =
             xModel = model.xModel
             xModel' = { xModel | centerX <- lcxInit.centerX }
           in
-            { model | time <- 0, xModel <- xModel' }
+            { model | time <- init.time, xModel <- xModel' }
         PlayControls.JumpEnd ->
           let
             descLen = ParseFiles.descriptorsLength model.descriptors
