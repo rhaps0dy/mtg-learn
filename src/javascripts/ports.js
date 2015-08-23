@@ -105,7 +105,9 @@ var Constants = Elm.Constants.make({});
       // Prevent microphone from being garbage-collected
       window.microphone = context.createMediaStreamSource(stream);
       elm_app.ports.micIsRecording.send(true);
-      window.scriptNode = context.createScriptProcessor(Constants.inputBufferSize, 1, 1);
+      var scriptNode = context.createScriptProcessor(Constants.inputBufferSize, 1, 1);
+      // script node connected to destination to work around bug in chrome/ium
+      scriptNode.connect(context.destination);
       window.microphone.connect(scriptNode);
       elm_app.ports.calculateMicDescriptors.subscribe(function(calcp) {
         if(calcp) {
