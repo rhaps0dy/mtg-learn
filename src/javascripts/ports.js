@@ -135,7 +135,7 @@ var Constants = Elm.Constants.make({});
 // Based off of Chris Wilson's metronome https://github.com/cwilso/metronome
 (function(document, elm_app) {
   var context = new AudioContext();
-  var beepLength = (1/440) * 3;
+  var beepLength = (1/440) * 14;
   function strongBeat() {
     var osc = context.createOscillator();
     osc.connect(context.destination);
