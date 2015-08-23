@@ -25,12 +25,9 @@ self.onmessage = function(e) {
       stopScheduler();
       startScheduler();
     }
-    console.log('set interval to ' + tickInterval);
   } else if(e.data.cmd === 'start') {
     startScheduler();
-    console.log('started');
   } else if(e.data.cmd === 'stop') {
     stopScheduler();
-    console.log('stopped');
   }
 };
