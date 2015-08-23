@@ -129,36 +129,65 @@ var Constants = Elm.Constants.make({});
   };
 })(window, navigator, elm_app);
 
+// Metronome
+// Based off of Chris Wilson's metronome https://github.com/cwilso/metronome
 (function(document, elm_app) {
-  var playInfo = {};
-  var nMetr = 8;
-  // We use several audio objects to be able to play simulatenous tocks and not
-  // have the tempo limited to the audio file's length
-  var metronomes = new Array(nMetr);
-  for(var i=0; i<nMetr; i++) {
-    metronomes[i] = new Audio();
-    metronomes[i].src = "/data/click.ogg";
-    document.body.appendChild(metronomes[i]);
+  var context = new AudioContext();
+  var beepLength = (1/440) * 3;
+  function strongBeat() {
+    var osc = context.createOscillator();
+    osc.connect(context.destination);
+    osc.frequency.value = 880.0;
+    return osc;
+  }
+  function weakBeat() {
+    var osc = context.createOscillator();
+    osc.connect(context.destination);
+    osc.frequency.value = 440.0;
+    return osc;
   }
 
-  elm_app.ports.playMetronome.subscribe(function(s) {
-    playInfo.playMetronome = s;
-  });
+  // We tick-tock in a separate thread for maximum setInterval accuracy
+  var scheduler = new Worker('metronome_worker.js');
+  scheduler.postMessage({cmd: 'options',
+                         tickInterval: 0.05,
+                        });
+  var scheduleAhead = 0.2;
+  var frameDuration = Constants.frameDuration;
+  var bpm, beatDuration;
   elm_app.ports.bpm.subscribe(function(s) {
-    playInfo.bpm = s;
+    bpm = s;
+    beatDuration = 60.0 / bpm;
   });
-  playInfo.i = 0;
-  elm_app.ports.sample.subscribe(function(time) {
-    if(!playInfo.playMetronome)
-      return;
-    var frameDuration = Constants.frameDuration
-    var beat_duration = 60 / playInfo.bpm;
-    var time_secs = time * frameDuration
+  var frame = 0;
+  elm_app.ports.sample.subscribe(function(s) {
+    frame = s;
+  });
+  var beat, startTime;
+  elm_app.ports.playMetronome.subscribe(function(s) {
+    if(s) {
+      var songTime = frame * frameDuration;
+      beat = Math.floor(songTime / beatDuration);
+      startTime = context.currentTime - songTime;
+      scheduler.postMessage({cmd: 'start'});
+    } else
+      scheduler.postMessage({cmd: 'stop'});
+  });
 
-    if(playInfo.lastTime !== time && time_secs % beat_duration < frameDuration) {
-      playInfo.lastTime = time;
-      metronomes[playInfo.i].play();
-      playInfo.i = (playInfo.i + 1) % nMetr;
+  scheduler.onmessage = function(e) {
+    if(e.data === 'tick') {
+      while(true) {
+        var start = beat * beatDuration + startTime;
+        if(start > context.currentTime + scheduleAhead)
+          break;
+        if(beat % 4 == 0)
+          osc = strongBeat();
+        else
+          osc = weakBeat();
+        osc.start(start);
+        osc.stop(start + beepLength);
+        beat++;
+      }
     }
-  });
+  };
 })(document, elm_app);

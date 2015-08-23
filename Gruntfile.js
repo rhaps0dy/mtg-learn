@@ -16,7 +16,7 @@ module.exports = function(grunt) {
       },
       javascripts: {
         files: ['src/javascripts/**'],
-        tasks: ['concat:dev']
+        tasks: ['concat:dev', 'uglify:dev']
       },
       html: {
         files: ['src/index.html'],
@@ -53,7 +53,7 @@ module.exports = function(grunt) {
     concat: {
       dev: {
         sourceMap: true,
-        src: ['build/elm.js', 'src/javascripts/**/*.js'],
+        src: ['build/elm.js', 'src/javascripts/ports.js'],
         dest: 'dist/main.js' // we skip uglifying in development
       },
       prod: {
@@ -112,13 +112,23 @@ module.exports = function(grunt) {
       }
     },
 
+    // we uglify only the metronome worker in dev
     uglify: {
+      dev: {
+        options: {
+          sourceMap: true
+        },
+        files: {
+          'dist/metronome_worker.js': 'src/javascripts/metronome_worker.js'
+        }
+      },
       prod: {
         options: {
           sourceMap: false
         },
         files: {
-          'dist/main.js': 'build/main.js'
+          'dist/main.js': 'build/main.js',
+          'dist/metronome_worker.js': 'src/javascripts/metronome_worker.js'
         }
       }
     },
@@ -178,7 +188,8 @@ module.exports = function(grunt) {
   ].forEach(grunt.loadNpmTasks);
 
   grunt.registerTask('build:dev', [
-    'clean', 'elm', 'concat:dev', 'compass:dev', 'htmlmin:dev', 'copy']);
+    'clean', 'elm', 'concat:dev', 'uglify:dev', 'compass:dev', 'htmlmin:dev',
+    'copy']);
   grunt.registerTask('build:prod', [
     'clean', 'elm', 'concat:prod', 'uglify:prod', 'compass:prod',
     'htmlmin:prod', 'copy', 'appcache:prod']);

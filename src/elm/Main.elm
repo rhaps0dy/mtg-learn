@@ -139,7 +139,8 @@ port calculateMicDescriptors = (\m -> m.tray.playControls.playing) <~ model
 
 -- Play metronome when a beat is passed
 port playMetronome : Signal Bool
-port playMetronome = (\m -> m.tray.playControls.metronome) <~ model
+port playMetronome =
+  (\m -> m.tray.playControls.metronome && m.tray.playControls.playing) <~ model
 
 port bpm : Signal Int
 port bpm = (\m -> m.tray.playControls.bpm) <~ model
