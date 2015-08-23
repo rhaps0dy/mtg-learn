@@ -201,7 +201,7 @@ getNCompAndHeight : Float -> VSel.Model -> (Int, Float)
 getNCompAndHeight height' vSelModel =
   let
     nComp = (if vSelModel.pitch then 1 else 0) + (if vSelModel.energy then 1 else 0)
-    componentH = height' / toFloat nComp
+    componentH = if nComp /= 0 then height' / toFloat nComp else height'
   in
     (nComp, componentH)
 
@@ -214,8 +214,10 @@ view vSelModel bpm (width, height) =
     adjHeight' = toFloat (height - xLabelHeightCanonical)
     (nComp, componentH') = getNCompAndHeight adjHeight' vSelModel
     componentH = floor componentH'
-    yLabelH = componentH * nComp
-    xLabelHeight = height - yLabelH
+    yLabelH =
+      if nComp /= 0 then componentH * nComp else height - xLabelHeightCanonical
+    xLabelHeight =
+      if nComp /= 0 then height - yLabelH else xLabelHeightCanonical
     canvas' = canvas width componentH []
     xLabels =
       let
