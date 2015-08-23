@@ -12,7 +12,7 @@ window.Elm.Native.PlotLine.make = function(localRuntime) {
   var Constants = Elm.Constants.make(localRuntime);
 
   function calcSampleWidth(bpm, unitWidthX) {
-    var beatSeconds = 60/2 / bpm; // Every beat in the sheet is an eighth note
+    var beatSeconds = 60 / bpm;
     return unitWidthX / beatSeconds * Constants.frameDuration;
   }
 

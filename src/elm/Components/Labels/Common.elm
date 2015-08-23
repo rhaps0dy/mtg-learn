@@ -51,7 +51,7 @@ xInit =
   , mouseDown = Nothing
 -- base end
   , centerX = 15
-  , unitWidthX = 20
+  , unitWidthX = 40
   , centerXMD = 0
   , unitWidthXMD = 20
   }
