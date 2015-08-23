@@ -157,6 +157,7 @@ module.exports = function(grunt) {
           literals: [
             '//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css',
             '//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/fonts/glyphicons-halflings-regular.woff',
+	    '//cwilso.github.io/AudioContext-MonkeyPatch/AudioContextMonkeyPatch.js'
           ],
         },
         network: [
