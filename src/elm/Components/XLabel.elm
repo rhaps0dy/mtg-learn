@@ -14,7 +14,7 @@ import Html.Attributes as Html
 import Html.Events as Html
 import HtmlEvents as HEv
 import Debug
-import Color
+import Components.Colors as Colors
 import ParseFiles
 import Constants
 
@@ -276,17 +276,17 @@ view vSelModel bpm (width, height) =
        , NumLabel.vertical "energy-ylabel" yLabelSize m.xModel m.energy
        , PianoLabel.withNotes "pitch-ylabel" yLabelSize m.xModel m.pitch
        , NumLabel.horizontal "horizontal-label" (width, xLabelHeight) m.xModel m.energy
-       , PianoRoll.plot Color.red "pitch-pianoroll" panelSize
+       , PianoRoll.plot Colors.sheet' "pitch-pianoroll" panelSize
            m.sheet m.xModel m.pitch
-       , PlotLine.plotBuffer Color.lightGreen "pitch-expert" panelSize bpm
+       , PlotLine.plotBuffer Colors.pitchExpert "pitch-expert" panelSize bpm
            m.descriptors.pitch m.xModel m.pitch
-       , PlotLine.plotBuffer Color.lightBlue "energy-expert" panelSize bpm
+       , PlotLine.plotBuffer Colors.energyExpert "energy-expert" panelSize bpm
            m.descriptors.energy m.xModel m.energy
        , PlotLine.moveLine "time-cursor" width bpm m.time m.xModel
            m.moveXCenterIfNeeded (Signal.forwardTo actions.address SetXCenter)
-       , PlotLine.plotBuffer Color.darkGreen "pitch-live" panelSize bpm
+       , PlotLine.plotBuffer Colors.pitchLive "pitch-live" panelSize bpm
            m.descriptorsLive.pitch m.xModel m.pitch
-       , PlotLine.plotBuffer Color.darkBlue "energy-live" panelSize bpm
+       , PlotLine.plotBuffer Colors.energyLive "energy-live" panelSize bpm
            m.descriptorsLive.energy m.xModel m.energy
        ]
   in

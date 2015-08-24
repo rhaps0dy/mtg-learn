@@ -5,7 +5,7 @@ module Components.Plots.PlotLine
 
 import Native.PlotLine
 import Task
-import Color
+import Components.Colors as C
 import Components.Labels.Common as LC
 import ParseFiles
 import Signal
@@ -13,7 +13,7 @@ import Signal
 -- so the native file can use Constants
 import Constants
 
-plotBuffer : Color.Color -> String -> (Int, Int) -> Float ->
+plotBuffer : C.HtmlColor -> String -> (Int, Int) -> Float ->
              ParseFiles.Buffer -> LC.XModel -> LC.YModel -> Task.Task String ()
 plotBuffer = Native.PlotLine.plotBuffer
 

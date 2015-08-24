@@ -7,7 +7,6 @@ window.Elm.Native.PlotLine.make = function(localRuntime) {
 
   var Task = Elm.Native.Task.make(localRuntime);
   var Utils = Elm.Native.Utils.make(localRuntime);
-  var Color = Elm.Color.make(localRuntime);
   var Signal = Elm.Signal.make(localRuntime);
   var Constants = Elm.Constants.make(localRuntime);
 
@@ -18,11 +17,6 @@ window.Elm.Native.PlotLine.make = function(localRuntime) {
 
   // This function could be curried, and the part extracting color precalculated
   function plot(color) {
-    var colorRGB = Color.toRgb(color);
-    var color = 'rgba(' + colorRGB.red +
-        ', ' + colorRGB.green +
-        ', ' + colorRGB.blue +
-        ', ' + colorRGB.alpha + ')';
   return function(id) {
     window.Elm.Native.PlotLine._cache = window.Elm.Native.PlotLine._cache || {};
     var cache = window.Elm.Native.PlotLine._cache[id] =
