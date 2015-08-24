@@ -2,6 +2,7 @@ module Components.Misc
  ( controlPanel
  , labeledCheckbox
  , whStyle
+ , nonBreakingSpace
  ) where
                       
 import Html exposing (..)
@@ -34,3 +35,7 @@ labeledCheckbox id' l address fun isChecked =
 
 whStyle : a -> a -> List (String, String)
 whStyle w h = [("width", toString w ++ "px"), ("height", toString h ++ "px")]
+
+nonBreakingSpace : String
+-- This is not a normal space, it's U+00A0 non-breaking space
+nonBreakingSpace = " "
