@@ -153,7 +153,7 @@ class PostProcessor : public Algorithm {
 	else
 	    _out_pitch.tokens()[0] = pitch;
 
-	_out_energy.tokens()[0] = _in_energy.tokens()[0];
+	_out_energy.tokens()[0] = 3.0 * _in_energy.tokens()[0];
 
         releaseData();
         return OK;
@@ -174,8 +174,8 @@ class PostProcessor : public Algorithm {
 void init_cpp(Network **network, Real *input_addr, Real *out_addr)
 {
     Real sampleRate = 44100.0;
-    int hopSize = 128;
-    int frameSize = 2048;
+    int hopSize = 2048;
+    int frameSize = 4096;
 
     // audio -> frameCutter -> Spectrum -> PitchYinFFT
     AlgorithmFactory &factory = streaming::AlgorithmFactory::instance();
