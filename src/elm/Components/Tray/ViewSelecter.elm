@@ -57,7 +57,9 @@ label htmlId haveColor colorExpert colorLive checkBox =
         ]
       else
        [ text nonBreakingSpace ])
-   , div [ class "col-xs-3" ]
+   , div [ class "col-xs-3"
+         , style [("margin-left", "-10px")]
+         ]
       [ p [ style [("margin-top", "10px")]
           , id htmlId
           ]

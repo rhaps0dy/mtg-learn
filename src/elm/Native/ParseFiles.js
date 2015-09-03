@@ -207,6 +207,8 @@ window.Elm.Native.ParseFiles.make = function(localRuntime) {
   }
 
   function scorify(n) {
+    if(isNaN(n))
+      return '-';
     return (n*100).toFixed(2) + '%';
   }
 
