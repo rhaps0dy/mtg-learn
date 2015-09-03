@@ -17,6 +17,9 @@ module ParseFiles
   , DecodedAudioBuffer
   , decodeAudioFile
   , descriptorMailbox
+  , DescriptorsScore
+  , calculateScore
+  , showScore
   ) where
 
 import File exposing (..)
@@ -85,3 +88,15 @@ descriptorsAssign = Native.ParseFiles.descriptorsAssign
 
 descriptorsLength : Descriptors -> Int
 descriptorsLength = Native.ParseFiles.descriptorsLength
+
+type alias DescriptorsScore =
+  { pitch : Float
+  , energy : Float
+  , total : Float
+  }
+
+calculateScore : Descriptors -> Descriptors -> DescriptorsScore
+calculateScore = Native.ParseFiles.calculateScore
+
+showScore : Maybe DescriptorsScore -> Task x ()
+showScore = Native.ParseFiles.showScore

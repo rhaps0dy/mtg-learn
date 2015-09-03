@@ -32,6 +32,7 @@ type alias Model =
   , sheet : ParseFiles.Sheet
   , descriptors : ParseFiles.Descriptors
   , descriptorsLive : ParseFiles.Descriptors
+  , score : Maybe ParseFiles.DescriptorsScore
 -- We use Int and not Time.Time because we represent the time as the current
 -- sample we are writing on.
   , time : Int
@@ -70,6 +71,7 @@ init =
   , sheet = ParseFiles.sheetInit
   , descriptors = ParseFiles.descriptorsInit
   , descriptorsLive = ParseFiles.descriptorsLiveInit
+  , score = Nothing
 -- Initial time is three seconds before the start of the song
   , time = ceiling <| -3 / Constants.frameDuration
   , moveXCenterIfNeeded = False
@@ -133,6 +135,9 @@ update action model =
             { model | time <- lastTime
                     , moveXCenterIfNeeded <- True
                     }
+        PlayControls.GetScore ->
+          { model | score <- Just (ParseFiles.calculateScore
+                               model.descriptors model.descriptorsLive) }
         _ ->
           model
     _ ->
@@ -288,6 +293,7 @@ view vSelModel bpm (width, height) =
            m.descriptorsLive.pitch m.xModel m.pitch
        , PlotLine.plotBuffer Colors.energyLive "energy-live" panelSize bpm
            m.descriptorsLive.energy m.xModel m.energy
+       , ParseFiles.showScore m.score
        ]
   in
     (mainView, trayView, drawTask)

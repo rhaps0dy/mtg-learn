@@ -45,8 +45,8 @@ colorBox col =
    , class "pull-left vertical-align-with-checkbox"
    ] []
 
-label : Bool -> Colors.HtmlColor -> Colors.HtmlColor -> Html -> Html
-label haveColor colorExpert colorLive checkBox =
+label : String -> Bool -> Colors.HtmlColor -> Colors.HtmlColor -> Html -> Html
+label htmlId haveColor colorExpert colorLive checkBox =
   div [ class "row" ]
    [ div [ class "col-xs-4" ]
       [ checkBox ]
@@ -58,7 +58,9 @@ label haveColor colorExpert colorLive checkBox =
       else
        [ text nonBreakingSpace ])
    , div [ class "col-xs-3" ]
-      [ p [ style [("margin-top", "10px")] ]
+      [ p [ style [("margin-top", "10px")]
+          , id htmlId
+          ]
         [ text "-" ]
       ]
    ]
@@ -76,10 +78,11 @@ view address model =
               [ text "Score" ]
             ]
          ]
-      , label True Colors.pitchExpert Colors.pitchLive <|
-          labeledCheckbox "view-pitch" "Pitch" address Pitch model.pitch
-      , label True Colors.energyExpert Colors.energyLive <|
-          labeledCheckbox "view-energy" "Energy" address Energy model.energy
-      , label False "" "" <| p [style [("margin-top", "10px")]] [ text "Total" ]
+      , label "view-pitch" True Colors.pitchExpert Colors.pitchLive <|
+          labeledCheckbox "checkbox-pitch" "Pitch" address Pitch model.pitch
+      , label "view-energy" True Colors.energyExpert Colors.energyLive <|
+          labeledCheckbox "checkbox-energy" "Energy" address Energy model.energy
+      , label "view-total" False "" "" <|
+        p [style [("margin-top", "10px")]] [ text "Total" ]
       ]
    ]

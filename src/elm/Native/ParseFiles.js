@@ -180,6 +180,52 @@ window.Elm.Native.ParseFiles.make = function(localRuntime) {
     return d.pitch.length;
   }
 
+  function calculateScore(descTruth, desc) {
+    var result = {total: 0};
+    for(var i=0; i<descNames.length; i++) {
+      var n = descNames[i];
+      var res = 0;
+      var dt = descTruth[n];
+      var d = desc[n];
+      var len = Math.min(dt.length, d.length);
+      for(var j=0; j<len; j++) {
+        if(isNaN(d[j]) && isNaN(dt[j])) {
+          res += 1;
+          continue;
+        }
+        var dist = d[j] - dt[j];
+        if(!isNaN(dist)) {
+            // If you have an error of more than 1, you score nothing. That
+            // means half a tone in pitch and the whole range in energy.
+            res += Math.max(1 - Math.abs(dist), 0);
+        }
+      }
+      result[n] = res / len;
+      result.total += result[n] / descNames.length;
+    }
+    return result;
+  }
+
+  function scorify(n) {
+    return (n*100).toFixed(2) + '%';
+  }
+
+  var cache;
+  function showScore(score) {
+    return Task.asyncFunction(function(callback) {
+      if(score._0 && score._0 !== cache) {
+        score = score._0;
+        cache = score;
+        for(var i=0; i<descNames.length; i++) {
+          var n = descNames[i];
+          document.getElementById("view-"+n).innerHTML = scorify(score[n]);
+        }
+        document.getElementById("view-total").innerHTML = scorify(score.total);
+      }
+      callback(Utils.Tuple0);
+    });
+  }
+
   return localRuntime.Native.ParseFiles.values =
     { sheet: sheet
     , print: print
@@ -188,6 +234,8 @@ window.Elm.Native.ParseFiles.make = function(localRuntime) {
     , emptyBuffer: function(){return new Array();}
     , descriptorsAssign: window.F3(descriptorsAssign)
     , descriptorsLength: descriptorsLength
+    , calculateScore: F2(calculateScore)
+    , showScore: showScore
     };
 };
 })(window, document);
