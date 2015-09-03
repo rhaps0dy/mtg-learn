@@ -212,9 +212,9 @@ getNCompAndHeight height' vSelModel =
 
 -- | This view returns the needed Html and a function that given a Model returns a
 -- rendering Task.
-view : VSel.Model -> Float -> (Int, Int) ->
+view : VSel.Model -> Float -> Int -> (Int, Int) ->
        (Html.Html, Html.Html, Model -> Task.Task String ())
-view vSelModel bpm (width, height) =
+view vSelModel bpm offset (width, height) =
   let
     adjHeight' = toFloat (height - xLabelHeightCanonical)
     (nComp, componentH') = getNCompAndHeight adjHeight' vSelModel
@@ -283,15 +283,15 @@ view vSelModel bpm (width, height) =
        , NumLabel.horizontal "horizontal-label" (width, xLabelHeight) m.xModel m.energy
        , PianoRoll.plot Colors.sheet' "pitch-pianoroll" panelSize
            m.sheet m.xModel m.pitch
-       , PlotLine.plotBuffer Colors.pitchExpert "pitch-expert" panelSize bpm
+       , PlotLine.plotBuffer Colors.pitchExpert "pitch-expert" panelSize bpm offset
            m.descriptors.pitch m.xModel m.pitch
-       , PlotLine.plotBuffer Colors.energyExpert "energy-expert" panelSize bpm
+       , PlotLine.plotBuffer Colors.energyExpert "energy-expert" panelSize bpm offset
            m.descriptors.energy m.xModel m.energy
-       , PlotLine.moveLine "time-cursor" width bpm m.time m.xModel
+       , PlotLine.moveLine "time-cursor" width bpm offset m.time m.xModel
            m.moveXCenterIfNeeded (Signal.forwardTo actions.address SetXCenter)
-       , PlotLine.plotBuffer Colors.pitchLive "pitch-live" panelSize bpm
+       , PlotLine.plotBuffer Colors.pitchLive "pitch-live" panelSize bpm offset
            m.descriptorsLive.pitch m.xModel m.pitch
-       , PlotLine.plotBuffer Colors.energyLive "energy-live" panelSize bpm
+       , PlotLine.plotBuffer Colors.energyLive "energy-live" panelSize bpm offset
            m.descriptorsLive.energy m.xModel m.energy
        , ParseFiles.showScore m.score
        ]

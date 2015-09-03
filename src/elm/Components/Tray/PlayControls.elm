@@ -20,6 +20,7 @@ type alias Model =
   { playing : Bool
   , metronome : Bool
   , bpm : Int
+  , offset : Int
   , micRecording : Bool
   }
 
@@ -28,6 +29,7 @@ init =
   { playing = False
   , metronome = False
   , bpm = 120
+  , offset = 0
   , micRecording = False
   }
 
@@ -40,6 +42,7 @@ type Action
   = NoOp
   | TogglePlaying
   | ChangeBPM Int
+  | ChangeOffset Int
   | Metronome Bool
   | MicRecording Bool
 
@@ -48,6 +51,7 @@ update action model =
  case action of
    TogglePlaying -> { model | playing <- not model.playing }
    ChangeBPM bpm -> { model | bpm <- bpm }
+   ChangeOffset offset -> { model | offset <- offset }
    Metronome b -> { model | metronome <- b }
    MicRecording b -> { model | micRecording <- b }
    _ -> model
@@ -69,6 +73,22 @@ view address extAddr model =
                , value (toString model.bpm)
                , onChange address (ChangeBPM << (\ (Ok i) -> i) << String.toInt)
                , attribute "aria-describedby" "bpm-label"
+               ] []
+            ]
+          ]
+      , div [ class "form-group" ]
+         [ div [ class "input-group" ]
+            [ span
+               [ class "input-group-addon"
+               , id "offset-label" ]
+               [ text "Offset (samples)" ]
+            , input
+               [ class "form-control"
+               , id "offset-value"
+               , type' "number"
+               , value (toString model.offset)
+               , onChange address (ChangeOffset << (\ (Ok i) -> i) << String.toInt)
+               , attribute "aria-describedby" "offset-label"
                ] []
             ]
          ]

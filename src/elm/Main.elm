@@ -49,7 +49,7 @@ view address model (w, h) =
   let
     (xLabels, yLabels, task) =
       XLabel.view model.tray.viewSelecter (toFloat model.tray.playControls.bpm)
-        (w, h)
+        model.tray.playControls.offset (w, h)
     html =
       div
        [ class "fullscreen"

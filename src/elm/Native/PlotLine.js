@@ -25,6 +25,7 @@ window.Elm.Native.PlotLine.make = function(localRuntime) {
     var width = size._0;
     var height = size._1;
   return function(bpm) {
+  return function(offset) {
   return function(values) {
   return function(xmodel) {
   return function(ymodel) {
@@ -40,6 +41,7 @@ window.Elm.Native.PlotLine.make = function(localRuntime) {
        cache.unitWidthX === unitWidthX &&
        cache.unitWidthY === unitWidthY &&
        cache.bpm === bpm &&
+       cache.offset === offset &&
        cache.width === width &&
        cache.height === height)
     {
@@ -59,6 +61,7 @@ window.Elm.Native.PlotLine.make = function(localRuntime) {
     cache.unitWidthX = unitWidthX;
     cache.unitWidthY = unitWidthY;
     cache.bpm = bpm;
+    cache.offset = offset;
     cache.width = width;
     cache.height = height;
 
@@ -106,7 +109,7 @@ window.Elm.Native.PlotLine.make = function(localRuntime) {
           var value = values[i];
           if(!isNaN(value)) {
             var y = height - ((value + centerY) * unitWidthY)|0;
-            var x = (i * sampleWidth + centerX * unitWidthX)|0;
+            var x = ((i + offset) * sampleWidth + centerX * unitWidthX)|0;
             ctx.fillRect(x, y-2, sampleWidth, 4);
           }
         }
@@ -114,7 +117,7 @@ window.Elm.Native.PlotLine.make = function(localRuntime) {
       draw(0);
       callback(Task.succeed(Utils.tuple0));
     });
-  }}}}}}}
+  }}}}}}}}
 
   function areEquals(a, b) {
     if(typeof a === "object") {
@@ -134,8 +137,9 @@ window.Elm.Native.PlotLine.make = function(localRuntime) {
     }
   }
 
-  function moveLine(id, width, bpm, time, xModel, moveXCenterIfNeeded, address) {
+  function moveLine(id, width, bpm, offset, time, xModel, moveXCenterIfNeeded, address) {
     return Task.asyncFunction(function(callback) {
+      time = time + offset;
       var sampleWidth = calcSampleWidth(bpm, xModel.unitWidthX);
       var x = xModel.centerX * xModel.unitWidthX + sampleWidth * time;
 
@@ -164,6 +168,6 @@ window.Elm.Native.PlotLine.make = function(localRuntime) {
 
   return localRuntime.Native.PlotLine.values =
     { plotBuffer: plot
-    , moveLine: F7(moveLine)
+    , moveLine: F8(moveLine)
     };
 };
