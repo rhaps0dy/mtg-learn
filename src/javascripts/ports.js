@@ -68,14 +68,12 @@ var Constants = Elm.Constants.make({});
   // Try to run main in intervals of 50ms
   // There is no event for after main has ran and we can use the Emscripten
   // runtime
-  script.onload = function initEssentia() {
-    try {
+  script.onload = function() {
+	Module.onRuntimeInitialized = function() {
       window.Module._init();
       elm_app.ports.audioAnalysisLoading.send(false);
       window.startAnalyzer()
-    } catch(err) {
-      setTimeout(initEssentia, 50);
-    }
+	};
   };
   document.body.appendChild(script);
 })(window, document, elm_app);
