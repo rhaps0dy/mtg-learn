@@ -179,6 +179,11 @@ yLabelWidth = 40
 xLabelHeightCanonical : Int
 xLabelHeightCanonical = 25
 
+headWithDefault : List (Int, Int) -> (Int, Int)
+headWithDefault l =
+  case (List.head l) of
+    Nothing -> (0, 0)
+
 canvas : Int -> Int -> List (String, String) -> Bool -> String ->
          Maybe (Signal.Address LC.Action) -> Html.Html
 canvas width height styles isFirst id address =
@@ -192,6 +197,9 @@ canvas width height styles isFirst id address =
         [ HEv.onMouseMove a LC.MouseMove
         , HEv.onMouseDown a LC.MouseDown
         , HEv.onMouseUp a (\_ -> LC.MouseUp)
+        , HEv.onTouchStart a (\l -> LC.MouseDown (HEv.Right, headWithDefault l))
+        , HEv.onTouchMove a (\l -> LC.MouseMove (headWithDefault l))
+        , HEv.onTouchEnd a (\_ -> LC.MouseUp)
         , HEv.onMouseEnter a LC.MouseEnter
         , HEv.onMouseLeave a (\_ -> LC.MouseUp)
         ])

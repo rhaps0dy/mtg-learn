@@ -6,6 +6,9 @@ module HtmlEvents
   , onMouseUp
   , onMouseEnter
   , onMouseLeave
+  , onTouchStart
+  , onTouchMove
+  , onTouchEnd
   , MouseButton(..)
   , MouseButtonSet
   , anyPressed
@@ -16,11 +19,13 @@ module HtmlEvents
 import Html exposing (Attribute)
 import Html.Attributes as Html
 import Html.Events as Events exposing (onClick, on, targetValue, targetChecked)
-import Json.Decode as Decode exposing ((:=), string, Decoder, int, object2)
+import Json.Decode as Decode exposing ((:=), string, Decoder, int, object2, list)
 import Signal
+import Debug
 import File exposing (File)
 import Bitwise
 
+import Native.Touch
 import Native.File
 
 onX : String -> Signal.Address a -> (String -> a) -> Attribute
@@ -36,6 +41,9 @@ onInput = onX "input"
 mouseMoveDecoder : Decoder (Int, Int)
 mouseMoveDecoder =
   object2 (,) ("layerX" := int) ("layerY" := int)
+
+touchDecoder : Decoder (List (Int, Int))
+touchDecoder = Native.Touch.touchDecoder
 
 onMouseMove : Signal.Address a -> ((Int, Int) -> a) -> Attribute
 onMouseMove address fun =
@@ -83,6 +91,17 @@ onMouseLeave : Signal.Address a -> ((MouseButtonSet, (Int, Int)) -> a) -> Attrib
 onMouseLeave address fun =
   on "mouseleave" mousePressedDecoder (Signal.message address << fun)
 
+onTouchStart : Signal.Address a -> ((List (Int, Int)) -> a) -> Attribute
+onTouchStart address fun =
+  on "touchstart" touchDecoder (Signal.message address << fun)
+
+onTouchMove : Signal.Address a -> ((List (Int, Int)) -> a) -> Attribute
+onTouchMove address fun =
+  on "touchmove" touchDecoder (Signal.message address << fun)
+
+onTouchEnd : Signal.Address a -> ((List (Int, Int)) -> a) -> Attribute
+onTouchEnd address fun =
+  on "touchend" touchDecoder (Signal.message address << fun)
 
 fileListDecoder : Decoder (List File)
 fileListDecoder = Native.File.fileListDecoder
