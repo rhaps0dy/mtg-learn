@@ -1,6 +1,7 @@
 module Constants
   ( hopSize
   , frameDuration
+  , sampleRate
   , inputBufferSize
   ) where
 
@@ -11,10 +12,13 @@ module Constants
 -- The constants here are copied from audio_analysis.cpp
 
 hopSize : Int
-hopSize = 128
+hopSize = 2048
 
 inputBufferSize : Int
 inputBufferSize = 4096
 
+sampleRate : Float
+sampleRate = 44100
+
 frameDuration : Float
-frameDuration = toFloat inputBufferSize / 44100
+frameDuration = toFloat inputBufferSize / sampleRate

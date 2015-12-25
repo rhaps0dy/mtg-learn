@@ -138,18 +138,20 @@ window.Elm.Native.ParseFiles.make = function(localRuntime) {
   function descriptors(buffer) {
     var IN_BUF_LEN = Constants.inputBufferSize;
     return Task.asyncFunction(function(callback) {
-      var Module = window.Module;
-      var in_buf_idx = Module._in_buf_address(0) / 4;
-      var pitch_idx = Module._out_buf_address(0) / 4;
-      var energy_idx = pitch_idx + 1;
+      var Module = window.Module();
+
+      var inp_idx = Module.inp_idx();
+      var pitch_idx = Module.pitch_idx();
+      var energy_idx = Module.energy_idx();
 
       var pitches = [];
       var energies = [];
       for(var i=0; i<buffer.length; i+=IN_BUF_LEN) {
-        Module.HEAPF32.set(buffer.subarray(i, i+IN_BUF_LEN), in_buf_idx);
-        Module._process(0);
-	pitches.push(Module.HEAPF32[pitch_idx]);
-        energies.push(Module.HEAPF32[energy_idx]);
+        Module.heapF64.set(buffer.subarray(i, i+IN_BUF_LEN), inp_idx);
+        Module.process(0);
+        console.log(Module.heapF64[pitch_idx]);
+        pitches.push(Module.heapF64[pitch_idx]);
+        energies.push(Module.heapF64[energy_idx]);
       }
       callback(Task.succeed(
         { pitch: pitches

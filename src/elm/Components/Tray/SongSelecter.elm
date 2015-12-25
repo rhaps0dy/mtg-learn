@@ -20,7 +20,7 @@ type alias Model =
 
 init : Model
 init =
-  { loading = True
+  { loading = False
   , audioFile = Task.fail "No audio file"
   , sheetFile = Task.fail "No sheet file"
   }

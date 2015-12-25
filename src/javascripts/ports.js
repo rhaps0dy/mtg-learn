@@ -60,73 +60,55 @@ var Constants = Elm.Constants.make({});
   }
 })(window, document, elm_app);
 
-// Loads the audio analysis runtime and signals its completion to the Elm
-// runtime and to the analyzer system
-(function(window, document, elm_app) {
-  var script = document.createElement('script');
-  script.src = "audio_analysis.js";
-  // Try to run main in intervals of 50ms
-  // There is no event for after main has ran and we can use the Emscripten
-  // runtime
-  script.onload = function() {
-	Module.onRuntimeInitialized = function() {
-      window.Module._init();
-      elm_app.ports.audioAnalysisLoading.send(false);
-      window.startAnalyzer()
-	};
-  };
-  document.body.appendChild(script);
-})(window, document, elm_app);
-
 (function(window, navigator, elm_app) {
-  window.startAnalyzer = function() {
-    var context = new AudioContext();
+  elm_app.ports.audioAnalysisLoading.send(false);
+  var context = new AudioContext();
+  var Module = window.Module();
 
-    var in_buf_idx = Module._in_buf_address(1) / 4;
-    var pitch_idx = Module._out_buf_address(1) / 4;
-    var energy_idx = pitch_idx + 1;
+  var inp_idx = Module.inp_idx();
+  var pitch_idx = Module.pitch_idx();
+  var energy_idx = Module.energy_idx();
 
-    var constraints = {
-      audio: {
-        optional: {
-          googEchoCancellation: false,
-          googAutoGainControl: false,
-          googNoiseSuppression: false,
-          googHighpassFilter: false,
-        }
+  var constraints = {
+    audio: {
+      optional: {
+        googEchoCancellation: false,
+        googAutoGainControl: false,
+        googNoiseSuppression: false,
+        googHighpassFilter: false,
       }
-    };
-    var getUserMedia =
-      navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
-    getUserMedia.call(navigator, {audio: true, costraints: constraints},
-                      function(stream) {
-      // Prevent microphone from being garbage-collected
-      window.microphone = context.createMediaStreamSource(stream);
-      elm_app.ports.micIsRecording.send(true);
-      var scriptNode = context.createScriptProcessor(Constants.inputBufferSize, 1, 1);
-      // script node connected to destination to work around bug in chrome/ium
-      scriptNode.connect(context.destination);
-      window.microphone.connect(scriptNode);
-      elm_app.ports.calculateMicDescriptors.subscribe(function(calcp) {
-        if(calcp) {
-          scriptNode.onaudioprocess = function (audioProcessingEvent) {
-            var inputData = audioProcessingEvent.inputBuffer.getChannelData(0);
-            window.Module.HEAPF32.set(inputData, in_buf_idx);
-            window.Module._process(1);
-            var r = {
-              pitch: Module.HEAPF32[pitch_idx],
-              energy: Module.HEAPF32[energy_idx]
-            };
-            elm_app.ports.micDescriptors.send(r);
-          };
-        } else {
-          scriptNode.onaudioprocess = function() {};
-        }
-      });
-    }, function(error) {
-      alert("You need to accept sharing the microphone to use this application");
-    });
+    }
   };
+  var getUserMedia =
+    navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+  getUserMedia.call(navigator, {audio: true, costraints: constraints},
+                    function(stream) {
+    // Prevent microphone from being garbage-collected
+    window.microphone = context.createMediaStreamSource(stream);
+    elm_app.ports.micIsRecording.send(true);
+    var scriptNode = context.createScriptProcessor(Constants.inputBufferSize, 1, 1);
+    // script node connected to destination to work around bug in chrome/ium
+    scriptNode.connect(context.destination);
+    window.microphone.connect(scriptNode);
+    elm_app.ports.calculateMicDescriptors.subscribe(function(calcp) {
+      if(calcp) {
+        scriptNode.onaudioprocess = function (audioProcessingEvent) {
+          var inputData = audioProcessingEvent.inputBuffer.getChannelData(0);
+          Module.heapF64.set(inputData, inp_idx);
+          Module.process(0);
+          var r = {
+            pitch: Module.heapF64[pitch_idx],
+            energy: Module.heapF64[energy_idx]
+          };
+          elm_app.ports.micDescriptors.send(r);
+        };
+      } else {
+        scriptNode.onaudioprocess = function() {};
+      }
+    });
+  }, function(error) {
+    alert("You need to accept sharing the microphone to use this application");
+  });
 })(window, navigator, elm_app);
 
 // Metronome

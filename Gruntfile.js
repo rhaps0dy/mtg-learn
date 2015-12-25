@@ -53,7 +53,9 @@ module.exports = function(grunt) {
     concat: {
       dev: {
         sourceMap: true,
-        src: ['build/elm.js', 'src/javascripts/ports.js'],
+        // TODO: Order of the concatenation of the JS is now important. Make it
+        // so it is not. Browserify is probably a good lib for that
+        src: ['build/elm.js', 'src/javascripts/essentia.js', 'src/javascripts/ports.js'],
         dest: 'dist/main.js' // we skip uglifying in development
       },
       prod: {
